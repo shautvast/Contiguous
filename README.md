@@ -1,6 +1,6 @@
 **Design decisions**
 * built for speed and efficiency (within java)
-* uses SQLite storage with 1 exception: float is stored as f32
+* uses storage format borrowed from SQLite with 1 exception: float is stored as f32 (SQLite only uses f64)
 * needs jdk 9 (VarHandles)
 * minimal reflection (once per creation of the list)
 
