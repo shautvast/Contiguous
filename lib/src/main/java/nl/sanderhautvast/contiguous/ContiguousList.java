@@ -22,9 +22,9 @@ import java.util.function.UnaryOperator;
  * <p>
  * Employs the SQLite style of data storage, most notably integer numbers are stored with variable byte length
  * <p>
- * The classes stored in DehydrateList MUST have a no-args constructor.
+ * The classes stored in {@link ContiguousList} MUST have a no-args constructor.
  * <p>
- * Like ArrayList mutating operations are not synchronized.
+ * Like ArrayList, mutating operations are not synchronized.
  * <p>
  * Does not allow null elements.
  * <p>
@@ -169,7 +169,7 @@ public class ContiguousList<E> implements List<E> {
         data.position(elementIndices[index]);
         try {
             if (type instanceof PrimitiveType<?>) {
-                return (E) ValueReader.read(data);
+                return (E)((PrimitiveType<?>)type).transform(ValueReader.read(data));
             }
             // create a new instance of the list element type
             E newInstance = (E) type.type.getDeclaredConstructor().newInstance();
@@ -187,7 +187,8 @@ public class ContiguousList<E> implements List<E> {
     private void setProperties(Object element, CompoundType compoundType) {
         compoundType.getProperties().forEach(property -> {
             if (property instanceof PrimitiveType) {
-                ((PrimitiveType<?>) property).setValue(element, ValueReader.read(data));
+                PrimitiveType<?> type =((PrimitiveType<?>) property);
+                type.setValue(element, ValueReader.read(data));
             } else {
                 try {
                     CompoundType p = (CompoundType) property;

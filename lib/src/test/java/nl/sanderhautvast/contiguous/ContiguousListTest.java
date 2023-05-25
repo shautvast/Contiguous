@@ -2,6 +2,7 @@ package nl.sanderhautvast.contiguous;
 
 import org.junit.jupiter.api.Test;
 
+import java.math.BigInteger;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -129,5 +130,15 @@ public class ContiguousListTest {
             beanList.add(new StringBean(null));
         }
         assertEquals(100, beanList.size());
+        for (int i = 0; i < 100; i++) {
+            assertNull(beanList.get(i));
+        }
+    }
+
+    @Test
+    public void testBigInteger() {
+        ContiguousList<BigInteger> bigIntegers = new ContiguousList<>(BigInteger.class);
+        bigIntegers.add(new BigInteger("1000000000"));
+        assertEquals(1_000_000_000L, bigIntegers.get(0).longValue());
     }
 }

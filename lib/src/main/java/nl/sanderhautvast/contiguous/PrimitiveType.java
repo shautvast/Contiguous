@@ -2,7 +2,7 @@ package nl.sanderhautvast.contiguous;
 
 import java.lang.invoke.MethodHandle;
 
-/*
+/**
  * Base class for handlers. Its responsibility is to read and write a property from the incoming object to the internal storage.
  *
  * Can be extended for types that you need to handle.
@@ -12,22 +12,6 @@ import java.lang.invoke.MethodHandle;
  * ie. when a bean is added or retrieved from the list
  */
 public abstract class PrimitiveType<T> extends Type {
-
-    /*
-     * Apology:
-     * This was the simplest thing I could think of when trying to accomodate for nested types.
-     *
-     * What you end up with after inspection in the DehydrateList is a flat list of getters and setters
-     * of properties that are in a tree-like structure (primitive properties within (nested) compound types)
-     * So to read or write a property in a 'root object' (element type in list) with compound property types
-     * you first have to traverse to the bean graph to the right container (bean) of the property you set/get
-     * (that is what the childGetters are for)
-     *
-     * Ideally you'd do this only once per containing class. In the current implementation it's once per
-     * property in the containing class.
-     */
-//    private final List<MethodHandle> childGetters = new ArrayList<>();
-
     public PrimitiveType(Class<?> type, MethodHandle getter, MethodHandle setter) {
         super(type, getter, setter);
     }
@@ -70,10 +54,23 @@ public abstract class PrimitiveType<T> extends Type {
      */
     public void setValue(Object instance, Object value) {
         try {
-            setter.invokeWithArguments(instance, value);
+            setter.invokeWithArguments(instance, transform(value));
         } catch (Throwable e) {
             throw new IllegalStateException(e);
         }
     }
 
+    /**
+     * Certain types can easily be stored as another known type, for instance
+     * a BigDecimal can be stored as a String.
+     *
+     * The {@link PrimitiveType} for BigDecimal would in that case be responsible for turning the String
+     * into a BigDecimal. It can do that by overriding this method
+     *
+     * @param value raw value to transform to the desired output type
+     * @return the transformed object
+     */
+    public Object transform(Object value){
+        return value;
+    }
 }
