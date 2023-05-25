@@ -11,7 +11,7 @@ final class Varint {
     //reuse the byte buffers => do not multithread
     private static final byte[] B8 = new byte[8];
     private static final byte[] B9 = new byte[9];
-
+//TODO remove them now!
     private Varint() {
     }
 
