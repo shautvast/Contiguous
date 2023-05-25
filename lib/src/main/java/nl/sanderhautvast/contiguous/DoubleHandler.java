@@ -5,7 +5,7 @@ import java.lang.invoke.MethodHandle;
 /**
  * Stores a double value.
  */
-class DoubleHandler extends PrimitiveType<Double> {
+class DoubleHandler extends PrimitiveTypeHandler<Double> {
     public DoubleHandler(MethodHandle getter, MethodHandle setter) {
         super(Double.class, getter, setter);
     }

@@ -5,7 +5,7 @@ import java.lang.invoke.MethodHandle;
 /**
  * Stores a byte value.
  */
-class ByteHandler extends PrimitiveType<Byte> {
+class ByteHandler extends PrimitiveTypeHandler<Byte> {
 
     public ByteHandler(MethodHandle getter, MethodHandle setter) {
         super(Byte.class, getter, setter);

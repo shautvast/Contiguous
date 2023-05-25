@@ -11,7 +11,7 @@ import java.util.Map;
  * Maps the propertyvalue type to a PropertyHandler
  */
 final class PropertyHandlerFactory {
-    private static final Map<Class<?>, Class<? extends PrimitiveType<?>>> STANDARD_HANDLERS = new HashMap<>();
+    private static final Map<Class<?>, Class<? extends PrimitiveTypeHandler<?>>> TYPE_HANDLERS = new HashMap<>();
 
     private PropertyHandlerFactory() {
     }
@@ -38,16 +38,16 @@ final class PropertyHandlerFactory {
     }
 
     public static boolean isKnownType(Class<?> type) {
-        return STANDARD_HANDLERS.containsKey(type);
+        return TYPE_HANDLERS.containsKey(type);
     }
 
-    public static <T> PrimitiveType<T> forType(Class<T> type, MethodHandle getter, MethodHandle setter) {
+    public static <T> PrimitiveTypeHandler<T> forType(Class<T> type, MethodHandle getter, MethodHandle setter) {
         try {
-            Class<? extends PrimitiveType<?>> appenderClass = STANDARD_HANDLERS.get(type);
+            Class<? extends PrimitiveTypeHandler<?>> appenderClass = TYPE_HANDLERS.get(type);
             if (appenderClass == null) {
                 throw new IllegalStateException("No Handler for " + type.getName());
             }
-            return (PrimitiveType<T>) appenderClass.getDeclaredConstructor(MethodHandle.class, MethodHandle.class)
+            return (PrimitiveTypeHandler<T>) appenderClass.getDeclaredConstructor(MethodHandle.class, MethodHandle.class)
                     .newInstance(getter, setter);
         } catch (NoSuchMethodException | InstantiationException | IllegalAccessException |
                  InvocationTargetException e) {
@@ -55,14 +55,14 @@ final class PropertyHandlerFactory {
         }
     }
 
-    public static <T> PrimitiveType<T> forType(Class<T> type) {
+    public static <T> PrimitiveTypeHandler<T> forType(Class<T> type) {
         return forType(type, null, null);
     }
 
     /**
      * register a new TypeHandler that cannot be derived from bean properties
      */
-    public static void register(Class<?> type, Class<? extends PrimitiveType<?>> typehandler) {
-        STANDARD_HANDLERS.put(type, typehandler);
+    public static void register(Class<?> type, Class<? extends PrimitiveTypeHandler<?>> typehandler) {
+        TYPE_HANDLERS.put(type, typehandler);
     }
 }

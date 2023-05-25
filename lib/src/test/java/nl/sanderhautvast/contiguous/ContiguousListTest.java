@@ -131,7 +131,7 @@ public class ContiguousListTest {
         }
         assertEquals(100, beanList.size());
         for (int i = 0; i < 100; i++) {
-            assertNull(beanList.get(i));
+            assertNull(beanList.get(i).getName());
         }
     }
 

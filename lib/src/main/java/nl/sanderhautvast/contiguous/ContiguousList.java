@@ -52,7 +52,7 @@ public class ContiguousList<E> implements List<E> {
 
     private int size;
 
-    private Type type;
+    private TypeHandler type;
 
     public ContiguousList(Class<E> type) {
         inspectType(type);
@@ -71,7 +71,7 @@ public class ContiguousList<E> implements List<E> {
         if (PropertyHandlerFactory.isKnownType(type)) {
             this.type = PropertyHandlerFactory.forType(type);
         } else {
-            CompoundType compoundType = new CompoundType(type);
+            CompoundTypeHandler compoundType = new CompoundTypeHandler(type);
             this.type = compoundType;
             try {
                 addPropertyHandlersForCompoundType(type, compoundType);
@@ -81,7 +81,7 @@ public class ContiguousList<E> implements List<E> {
         }
     }
 
-    private void addPropertyHandlersForCompoundType(Class<?> type, CompoundType parentCompoundType) throws IllegalAccessException {
+    private void addPropertyHandlersForCompoundType(Class<?> type, CompoundTypeHandler parentCompoundType) throws IllegalAccessException {
         final MethodHandles.Lookup lookup = MethodHandles.privateLookupIn(type, MethodHandles.lookup());
         Arrays.stream(type.getDeclaredFields())
                 .forEach(field -> {
@@ -91,11 +91,11 @@ public class ContiguousList<E> implements List<E> {
                         MethodHandle setter = lookup.findSetter(type, field.getName(), fieldType);
 
                         if (PropertyHandlerFactory.isKnownType(fieldType)) {
-                            PrimitiveType<?> primitiveType = PropertyHandlerFactory.forType(fieldType, getter, setter);
+                            PrimitiveTypeHandler<?> primitiveType = PropertyHandlerFactory.forType(fieldType, getter, setter);
 
                             parentCompoundType.addHandler(field.getName(), primitiveType);
                         } else {
-                            CompoundType newParent = new CompoundType(fieldType);
+                            CompoundTypeHandler newParent = new CompoundTypeHandler(fieldType);
                             newParent.setGetter(getter);
                             newParent.setSetter(setter);
                             parentCompoundType.addChild(field, newParent);
@@ -126,18 +126,18 @@ public class ContiguousList<E> implements List<E> {
         return true;
     }
 
-    private void getProperties(Object element, Type type) {
+    private void getProperties(Object element, TypeHandler type) {
         // passed type is primitive
-        if (type instanceof PrimitiveType<?>) {
-            ((PrimitiveType<?>) type).storePropertyValue(element, this);
+        if (type instanceof PrimitiveTypeHandler<?>) {
+            ((PrimitiveTypeHandler<?>) type).storePropertyValue(element, this);
         } else {
             // passed type is compund ie. has child properties
-            ((CompoundType)type).getProperties().forEach(property -> {
-                if (property instanceof PrimitiveType<?>) {
+            ((CompoundTypeHandler)type).getProperties().forEach(property -> {
+                if (property instanceof PrimitiveTypeHandler<?>) {
                     // recurse once more -> property is stored
                     getProperties(element, property);
                 } else {
-                    CompoundType child = ((CompoundType) property);
+                    CompoundTypeHandler child = ((CompoundTypeHandler) property);
                     try {
                         Object result = child.getGetter().invoke(element);
                         getProperties(result, child);
@@ -168,14 +168,14 @@ public class ContiguousList<E> implements List<E> {
         }
         data.position(elementIndices[index]);
         try {
-            if (type instanceof PrimitiveType<?>) {
-                return (E)((PrimitiveType<?>)type).transform(ValueReader.read(data));
+            if (type instanceof PrimitiveTypeHandler<?>) {
+                return (E)((PrimitiveTypeHandler<?>)type).transform(ValueReader.read(data));
             }
             // create a new instance of the list element type
-            E newInstance = (E) type.type.getDeclaredConstructor().newInstance();
+            E newInstance = (E) type.getType().getDeclaredConstructor().newInstance();
 
             // set the data
-            setProperties(newInstance, (CompoundType) type);
+            setProperties(newInstance, (CompoundTypeHandler) type);
 
             return newInstance;
         } catch (NoSuchMethodException | InstantiationException | IllegalAccessException |
@@ -184,14 +184,14 @@ public class ContiguousList<E> implements List<E> {
         }
     }
 
-    private void setProperties(Object element, CompoundType compoundType) {
+    private void setProperties(Object element, CompoundTypeHandler compoundType) {
         compoundType.getProperties().forEach(property -> {
-            if (property instanceof PrimitiveType) {
-                PrimitiveType<?> type =((PrimitiveType<?>) property);
+            if (property instanceof PrimitiveTypeHandler) {
+                PrimitiveTypeHandler<?> type =((PrimitiveTypeHandler<?>) property);
                 type.setValue(element, ValueReader.read(data));
             } else {
                 try {
-                    CompoundType p = (CompoundType) property;
+                    CompoundTypeHandler p = (CompoundTypeHandler) property;
                     // create a new instance of the property
                     Object newInstance = p.getType().getDeclaredConstructor().newInstance();
 

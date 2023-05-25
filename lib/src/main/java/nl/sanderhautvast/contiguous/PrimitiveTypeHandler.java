@@ -4,15 +4,15 @@ import java.lang.invoke.MethodHandle;
 
 /**
  * Base class for handlers. Its responsibility is to read and write a property from the incoming object to the internal storage.
- *
+ * <p>
  * Can be extended for types that you need to handle.
- *
+ * <p>
  * A property handler is instantiated once per bean property and contains handles to the getter and setter methods
  * of the bean that it needs to call 'runtime' (after instantiation of the list),
  * ie. when a bean is added or retrieved from the list
  */
-public abstract class PrimitiveType<T> extends Type {
-    public PrimitiveType(Class<?> type, MethodHandle getter, MethodHandle setter) {
+public abstract class PrimitiveTypeHandler<T> extends TypeHandler {
+    public PrimitiveTypeHandler(Class<?> type, MethodHandle getter, MethodHandle setter) {
         super(type, getter, setter);
     }
 
@@ -63,14 +63,14 @@ public abstract class PrimitiveType<T> extends Type {
     /**
      * Certain types can easily be stored as another known type, for instance
      * a BigDecimal can be stored as a String.
-     *
-     * The {@link PrimitiveType} for BigDecimal would in that case be responsible for turning the String
+     * <p>
+     * The {@link PrimitiveTypeHandler} for BigDecimal would in that case be responsible for turning the String
      * into a BigDecimal. It can do that by overriding this method
      *
      * @param value raw value to transform to the desired output type
      * @return the transformed object
      */
-    public Object transform(Object value){
+    public Object transform(Object value) {
         return value;
     }
 }

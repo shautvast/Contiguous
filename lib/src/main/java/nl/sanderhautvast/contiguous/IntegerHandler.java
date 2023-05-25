@@ -2,7 +2,7 @@ package nl.sanderhautvast.contiguous;
 
 import java.lang.invoke.MethodHandle;
 
-class IntegerHandler extends PrimitiveType<Integer> {
+class IntegerHandler extends PrimitiveTypeHandler<Integer> {
     public IntegerHandler(MethodHandle getter, MethodHandle setter) {
         super(Integer.class, getter, setter);
     }

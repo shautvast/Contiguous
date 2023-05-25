@@ -2,7 +2,7 @@ package nl.sanderhautvast.contiguous;
 
 import java.lang.invoke.MethodHandle;
 
-class ShortHandler extends PrimitiveType<Short> {
+class ShortHandler extends PrimitiveTypeHandler<Short> {
     public ShortHandler(MethodHandle getter, MethodHandle setter) {
         super(Short.class, getter, setter);
     }
