@@ -128,6 +128,7 @@ public class ContiguousList<E> implements List<E> {
 
     private void getProperties(Object element, TypeHandler type) {
         // passed type is primitive
+//TODO rename primitive to builtin
         if (type instanceof PrimitiveTypeHandler<?>) {
             ((PrimitiveTypeHandler<?>) type).storePropertyValue(element, this);
         } else {
@@ -136,6 +137,7 @@ public class ContiguousList<E> implements List<E> {
                 if (property instanceof PrimitiveTypeHandler<?>) {
                     // recurse once more -> property is stored
                     getProperties(element, property);
+//could easily inline this
                 } else {
                     CompoundTypeHandler child = ((CompoundTypeHandler) property);
                     try {
