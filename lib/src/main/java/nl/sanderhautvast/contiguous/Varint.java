@@ -8,16 +8,12 @@ import java.nio.ByteBuffer;
  */
 final class Varint {
 
-    //reuse the byte buffers => do not multithread
-    private static final byte[] B8 = new byte[8];
-    private static final byte[] B9 = new byte[9];
-//TODO remove them now!
     private Varint() {
     }
 
     public static byte[] write(long v) {
         if ((v & ((0xff000000L) << 32)) != 0) {
-            byte[] result = B9;
+            byte[] result = new byte[9];
             result[8] = (byte) v;
             v >>= 8;
             for (int i = 7; i >= 0; i--) {
@@ -27,7 +23,7 @@ final class Varint {
             return result;
         } else {
             int n;
-            byte[] buf = B8;
+            byte[] buf = new byte[8];
             for (n = 0; v != 0; n++, v >>= 7) {
                 buf[n] = (byte) ((v & 0x7f) | 0x80);
             }
