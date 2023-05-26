@@ -214,14 +214,8 @@ public class ContiguousList<E> extends NotImplementedList<E> implements List<E> 
      * <p>
      * Because the values differ in type the output type is Object
      * <p>
-     * NB the actual type (right now) is the `raw` value: all integers are of type Long, BigInteger is String
-     * // That is unfortunate (or must I say: annoying!), but for something like JSON not a problem (I think).
-     * // So maybe keep this in (say 'rawValueIterator') and also create a typesafe iterator.
-     * <p>
      * It detects {@link ConcurrentModificationException} if the underlying list was updated while iterating.
      * <p>
-     * // I should probably include a type so that the caller could cast to the correct type
-     * // not sure yet
      *
      * @return an Iterator<?>
      */
@@ -230,14 +224,14 @@ public class ContiguousList<E> extends NotImplementedList<E> implements List<E> 
     }
 
     /**
-     * Returns a list of the types that are in the data
-     * @return
+     * @return a list of types in the Object(graph). So the element type and all (nested) properties
      */
     public List<Class<?>> getTypes() {
         final List<Class<?>> types = new ArrayList<>();
         getTypes(rootHandler, types);
         return types;
     }
+
 
     private void getTypes(TypeHandler handler, List<Class<?>> types) {
         if (handler instanceof BuiltinTypeHandler<?>) {
@@ -249,11 +243,30 @@ public class ContiguousList<E> extends NotImplementedList<E> implements List<E> 
         }
     }
 
+    List<BuiltinTypeHandler<?>> getBuiltinTypeHandlers() {
+        final List<BuiltinTypeHandler<?>> types = new ArrayList<>();
+        getStoredTypes(rootHandler, types);
+        return types;
+    }
+
+    private void getStoredTypes(TypeHandler handler, List<BuiltinTypeHandler<?>> types) {
+        if (handler instanceof BuiltinTypeHandler<?>) {
+            types.add((BuiltinTypeHandler<?>) handler);
+        } else {
+            ((CompoundTypeHandler) handler).getProperties()
+                    .forEach(propertyHandler -> getStoredTypes(propertyHandler, types));
+        }
+    }
+
     public class ValueIterator implements Iterator<Object> {
         private final int originalSize;
         private final int originalPosition;
+        private final List<BuiltinTypeHandler<?>> typeHandlers;
+        private Iterator<BuiltinTypeHandler<?>> typeHandlersIterator;
 
         ValueIterator() {
+            typeHandlers = getBuiltinTypeHandlers();
+            typeHandlersIterator = typeHandlers.iterator();
             this.originalSize = size;
             this.originalPosition = data.position();
             data.position(0);
@@ -273,7 +286,16 @@ public class ContiguousList<E> extends NotImplementedList<E> implements List<E> 
              * so that's why we first check for modifications (me and the computer)
              *
              * I could also maintain the position here. But you main want to fail ... dunno */
-            return ValueReader.read(data);
+            Object rawValue = ValueReader.read(data);
+
+            // transform (currently integers to the expected type)
+            BuiltinTypeHandler<?> handler;
+            while (!typeHandlersIterator.hasNext()) {
+                typeHandlersIterator = typeHandlers.iterator();
+            }
+            handler = typeHandlersIterator.next();
+
+            return handler.transform(rawValue);
         }
     }
 

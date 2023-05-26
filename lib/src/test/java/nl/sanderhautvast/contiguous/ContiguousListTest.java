@@ -168,7 +168,7 @@ public class ContiguousListTest {
         }
         long prevValue = -1;
         for (Iterator<?> intIter = integers.valueIterator(); intIter.hasNext(); ) {
-            long value = (long) intIter.next();
+            int value = (int) intIter.next();
             assertEquals(prevValue, value - 1);
             prevValue = value;
         }
@@ -187,7 +187,7 @@ public class ContiguousListTest {
         }
         long prevValue = -1;
         for (Iterator<?> intIter = integers.valueIterator(); intIter.hasNext(); ) {
-            long value = (long) intIter.next(); // here a value (IntBean.value)
+            int value = (int) intIter.next();
             assertEquals(prevValue, value - 1);
             prevValue = value;
         }
@@ -199,7 +199,7 @@ public class ContiguousListTest {
     }
 
     @Test
-    public void testGetStoredTypesWhenCompound() {
+    public void testGetTypesWhenCompound() {
         ContiguousList<NestedBean> integers = new ContiguousList<>(NestedBean.class);
         Iterator<Class<?>> typeIterator = integers.getTypes().iterator();
         assertTrue(typeIterator.hasNext());
