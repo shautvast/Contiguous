@@ -197,4 +197,63 @@ public class ContiguousListTest {
 
         assertEquals(new IntBean(100), integers.get(100)); // here an instance
     }
+
+    @Test
+    public void testGetStoredTypesWhenCompound() {
+        ContiguousList<NestedBean> integers = new ContiguousList<>(NestedBean.class);
+        Iterator<Class<?>> typeIterator = integers.getTypes().iterator();
+        assertTrue(typeIterator.hasNext());
+        assertEquals(NestedBean.class, typeIterator.next());
+        assertTrue(typeIterator.hasNext());
+        assertEquals(StringBean.class, typeIterator.next());
+        assertTrue(typeIterator.hasNext());
+        assertEquals(String.class, typeIterator.next());
+        assertTrue(typeIterator.hasNext());
+        assertEquals(IntBean.class, typeIterator.next());
+        assertTrue(typeIterator.hasNext());
+        assertEquals(Integer.class, typeIterator.next());
+
+    }
+
+    @Test
+    public void testGetStoredTypesDeepCompound() {
+        ContiguousList<DeepBean> beans = new ContiguousList<>(DeepBean.class);
+        Iterator<Class<?>> typeIterator = beans.getTypes().iterator();
+        assertTrue(typeIterator.hasNext());
+        assertEquals(DeepBean.class, typeIterator.next());
+
+        assertTrue(typeIterator.hasNext());
+        assertEquals(NestedBean.class, typeIterator.next());
+
+        assertTrue(typeIterator.hasNext());
+        assertEquals(StringBean.class, typeIterator.next());
+
+        assertTrue(typeIterator.hasNext());
+        assertEquals(String.class, typeIterator.next());
+
+        assertTrue(typeIterator.hasNext());
+        assertEquals(IntBean.class, typeIterator.next());
+
+        assertTrue(typeIterator.hasNext());
+        assertEquals(Integer.class, typeIterator.next());
+
+        assertTrue(typeIterator.hasNext());
+        assertEquals(Long.class, typeIterator.next());
+
+        assertTrue(typeIterator.hasNext());
+        assertEquals(StringBean.class, typeIterator.next());
+
+        assertTrue(typeIterator.hasNext());
+        assertEquals(String.class, typeIterator.next());
+
+    }
+
+    @Test
+    public void testTypeIteratorBuiltin() {
+        ContiguousList<Integer> integers = new ContiguousList<>(Integer.class);
+        Iterator<Class<?>> typeIterator = integers.getTypes().iterator();
+        if (typeIterator.hasNext()) {
+            assertEquals(Integer.class, typeIterator.next());
+        }
+    }
 }

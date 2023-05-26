@@ -213,7 +213,7 @@ public class ContiguousList<E> extends NotImplementedList<E> implements List<E> 
      * bean property values in a fixed order for all elements.
      * <p>
      * Because the values differ in type the output type is Object
-     *
+     * <p>
      * NB the actual type (right now) is the `raw` value: all integers are of type Long, BigInteger is String
      * // That is unfortunate (or must I say: annoying!), but for something like JSON not a problem (I think).
      * // So maybe keep this in (say 'rawValueIterator') and also create a typesafe iterator.
@@ -229,7 +229,27 @@ public class ContiguousList<E> extends NotImplementedList<E> implements List<E> 
         return new ValueIterator();
     }
 
-    class ValueIterator implements Iterator<Object> {
+    /**
+     * Returns a list of the types that are in the data
+     * @return
+     */
+    public List<Class<?>> getTypes() {
+        final List<Class<?>> types = new ArrayList<>();
+        getTypes(rootHandler, types);
+        return types;
+    }
+
+    private void getTypes(TypeHandler handler, List<Class<?>> types) {
+        if (handler instanceof BuiltinTypeHandler<?>) {
+            types.add(handler.getType());
+        } else {
+            types.add(handler.getType());
+            ((CompoundTypeHandler) handler).getProperties()
+                    .forEach(propertyHandler -> getTypes(propertyHandler, types));
+        }
+    }
+
+    public class ValueIterator implements Iterator<Object> {
         private final int originalSize;
         private final int originalPosition;
 
