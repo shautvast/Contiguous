@@ -17,7 +17,7 @@ class CompoundTypeHandler extends TypeHandler {
         return properties.values();
     }
 
-    void addHandler(String propertyName, PrimitiveTypeHandler<?> primitiveType) {
+    void addHandler(String propertyName, BuiltinTypeHandler<?> primitiveType) {
         properties.put(propertyName, primitiveType);
     }
 

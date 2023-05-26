@@ -3,6 +3,7 @@ package nl.sanderhautvast.contiguous;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
+import java.util.Iterator;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -140,5 +141,60 @@ public class ContiguousListTest {
         ContiguousList<BigInteger> bigIntegers = new ContiguousList<>(BigInteger.class);
         bigIntegers.add(new BigInteger("1000000000"));
         assertEquals(1_000_000_000L, bigIntegers.get(0).longValue());
+    }
+
+    @Test
+    public void testIterator() {
+        ContiguousList<Integer> integers = new ContiguousList<>(Integer.class);
+        for (int i = 0; i < 100; i++) {
+            integers.add(i);
+        }
+        int prevValue = -1;
+        for (int value : integers) {
+            assertEquals(prevValue, value - 1);
+            prevValue = value;
+        }
+
+        integers.add(100);
+
+        assertEquals(100, integers.get(100));
+    }
+
+    @Test
+    public void testPrimitiveIterator() {
+        ContiguousList<Integer> integers = new ContiguousList<>(Integer.class);
+        for (int i = 0; i < 100; i++) {
+            integers.add(i);
+        }
+        long prevValue = -1;
+        for (Iterator<?> intIter = integers.valueIterator(); intIter.hasNext(); ) {
+            long value = (long) intIter.next();
+            assertEquals(prevValue, value - 1);
+            prevValue = value;
+        }
+
+
+        integers.add(100);
+
+        assertEquals(100, integers.get(100));
+    }
+
+    @Test
+    public void testCompoundValueIterator() {
+        ContiguousList<IntBean> integers = new ContiguousList<>(IntBean.class);
+        for (int i = 0; i < 100; i++) {
+            integers.add(new IntBean(i));
+        }
+        long prevValue = -1;
+        for (Iterator<?> intIter = integers.valueIterator(); intIter.hasNext(); ) {
+            long value = (long) intIter.next(); // here a value (IntBean.value)
+            assertEquals(prevValue, value - 1);
+            prevValue = value;
+        }
+
+
+        integers.add(new IntBean(100));
+
+        assertEquals(new IntBean(100), integers.get(100)); // here an instance
     }
 }

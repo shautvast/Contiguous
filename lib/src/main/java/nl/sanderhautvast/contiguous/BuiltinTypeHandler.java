@@ -11,8 +11,8 @@ import java.lang.invoke.MethodHandle;
  * of the bean that it needs to call 'runtime' (after instantiation of the list),
  * ie. when a bean is added or retrieved from the list
  */
-public abstract class PrimitiveTypeHandler<T> extends TypeHandler {
-    public PrimitiveTypeHandler(Class<?> type, MethodHandle getter, MethodHandle setter) {
+public abstract class BuiltinTypeHandler<T> extends TypeHandler {
+    public BuiltinTypeHandler(Class<?> type, MethodHandle getter, MethodHandle setter) {
         super(type, getter, setter);
     }
 
@@ -64,7 +64,7 @@ public abstract class PrimitiveTypeHandler<T> extends TypeHandler {
      * Certain types can easily be stored as another known type, for instance
      * a BigDecimal can be stored as a String.
      * <p>
-     * The {@link PrimitiveTypeHandler} for BigDecimal would in that case be responsible for turning the String
+     * The {@link BuiltinTypeHandler} for BigDecimal would in that case be responsible for turning the String
      * into a BigDecimal. It can do that by overriding this method
      *
      * @param value raw value to transform to the desired output type

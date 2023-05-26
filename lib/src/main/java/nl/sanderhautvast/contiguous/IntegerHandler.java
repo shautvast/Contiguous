@@ -2,7 +2,7 @@ package nl.sanderhautvast.contiguous;
 
 import java.lang.invoke.MethodHandle;
 
-class IntegerHandler extends PrimitiveTypeHandler<Integer> {
+class IntegerHandler extends BuiltinTypeHandler<Integer> {
     public IntegerHandler(MethodHandle getter, MethodHandle setter) {
         super(Integer.class, getter, setter);
     }
@@ -19,5 +19,15 @@ class IntegerHandler extends PrimitiveTypeHandler<Integer> {
     @Override
     public void setValue(Object instance, Object value) {
         super.setValue(instance, ((Long) value).intValue());
+    }
+
+    @Override
+    public Object transform(Object value) {
+        // could be Long (raw value)
+        // or Integer when it's a property with known type
+        if (value instanceof Long) {
+            return ((Long) value).intValue();
+        }
+        return value;
     }
 }

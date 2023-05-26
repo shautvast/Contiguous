@@ -40,9 +40,9 @@ class ValueReader {
         } else if (columnType == 7) {
             return buffer.getDouble();
         } else if (columnType == 8) {
-            return 0;
+            return 0L; //has to be long!
         } else if (columnType == 9) {
-            return 1;
+            return 1L;
         } else if (columnType == 10) {
             return buffer.getFloat();
         } else if (columnType >= 12 && columnType % 2 == 0) {

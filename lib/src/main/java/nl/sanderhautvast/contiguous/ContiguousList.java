@@ -6,7 +6,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.function.UnaryOperator;
 
 //notes:
 //1. should find out growth factor of arraylist
@@ -25,7 +24,9 @@ import java.util.function.UnaryOperator;
  * <p>
  * Employs the SQLite style of data storage, most notably integer numbers are stored with variable byte length
  * <p>
- * The classes stored in {@link ContiguousList} MUST have a no-args constructor.
+ * The classes stored in {@link ContiguousList} MUST have a no-args constructor. (so sorry)
+ * // There is (was?) a way to create instances without a no-args constructor. I have used it somewhere in the past...
+ * // I think {@link java.io.ObjectInputStream} uses it.
  * <p>
  * Like ArrayList, mutating operations are not synchronized.
  * <p>
@@ -35,7 +36,7 @@ import java.util.function.UnaryOperator;
  * performance-wise, like the indexed add and set methods. They mess with the memory layout. The list is meant to
  * be appended at the tail.
  */
-public class ContiguousList<E> implements List<E> {
+public class ContiguousList<E> extends NotImplementedList<E> implements List<E> {
 
     private static final byte[] DOUBLE_TYPE = {7};
     private static final byte[] FLOAT_TYPE = {10}; // not in line with SQLite anymore
@@ -49,17 +50,17 @@ public class ContiguousList<E> implements List<E> {
      */
     private ByteBuffer data = ByteBuffer.allocate(32);
 
-    private int currentElementIndex;
+    private int currentElementValueIndex;
 
     private int[] elementIndices = new int[10];
 
     private int size;
 
-    private TypeHandler type;
+    private TypeHandler rootHandler;
 
     public ContiguousList(Class<E> type) {
         inspectType(type);
-        elementIndices[0] = currentElementIndex; // index of first element
+        elementIndices[0] = currentElementValueIndex; // index of first element
     }
 
     /*
@@ -72,10 +73,10 @@ public class ContiguousList<E> implements List<E> {
      */
     private void inspectType(Class<?> type) {
         if (PropertyHandlerFactory.isKnownType(type)) {
-            this.type = PropertyHandlerFactory.forType(type);
+            this.rootHandler = PropertyHandlerFactory.forType(type);
         } else {
             CompoundTypeHandler compoundType = new CompoundTypeHandler(type);
-            this.type = compoundType;
+            this.rootHandler = compoundType;
             try {
                 addPropertyHandlersForCompoundType(type, compoundType);
             } catch (IllegalAccessException e) {
@@ -94,7 +95,7 @@ public class ContiguousList<E> implements List<E> {
                         MethodHandle setter = lookup.findSetter(type, field.getName(), fieldType);
 
                         if (PropertyHandlerFactory.isKnownType(fieldType)) {
-                            PrimitiveTypeHandler<?> primitiveType = PropertyHandlerFactory.forType(fieldType, getter, setter);
+                            BuiltinTypeHandler<?> primitiveType = PropertyHandlerFactory.forType(fieldType, getter, setter);
 
                             parentCompoundType.addHandler(field.getName(), primitiveType);
                         } else {
@@ -111,36 +112,31 @@ public class ContiguousList<E> implements List<E> {
                 });
     }
 
-
     @Override
     @SuppressWarnings("Contract")
     public boolean add(E element) {
         if (element == null) {
             return false;
         }
-        getProperties(element, type);
+        getProperties(element, rootHandler);
         size += 1;
 
         // keep track of where the objects are stored
         if (elementIndices.length < size + 1) {
             this.elementIndices = Arrays.copyOf(this.elementIndices, this.elementIndices.length * 2);
         }
-        elementIndices[size] = currentElementIndex;
+        elementIndices[size] = currentElementValueIndex;
         return true;
     }
 
-    private void getProperties(Object element, TypeHandler type) {
-        // passed type is primitive
-//TODO rename primitive to builtin
-        if (type instanceof PrimitiveTypeHandler<?>) {
-            ((PrimitiveTypeHandler<?>) type).storePropertyValue(element, this);
+    private void getProperties(Object element, TypeHandler typeHandler) {
+        if (typeHandler instanceof BuiltinTypeHandler<?>) {
+            ((BuiltinTypeHandler<?>) typeHandler).storePropertyValue(element, this);
         } else {
-            // passed type is compund ie. has child properties
-            ((CompoundTypeHandler)type).getProperties().forEach(property -> {
-                if (property instanceof PrimitiveTypeHandler<?>) {
-                    // recurse once more -> property is stored
-                    getProperties(element, property);
-//could easily inline this
+            // passed type is compound ie. has child properties
+            ((CompoundTypeHandler) typeHandler).getProperties().forEach(property -> {
+                if (property instanceof BuiltinTypeHandler<?>) {
+                    ((BuiltinTypeHandler<?>) property).storePropertyValue(element, this);
                 } else {
                     CompoundTypeHandler child = ((CompoundTypeHandler) property);
                     try {
@@ -154,17 +150,16 @@ public class ContiguousList<E> implements List<E> {
         }
     }
 
-    @Override
-    public boolean remove(Object o) {
-        throw new RuntimeException("Not yet implemented");
-    }
-
-    @Override
-    @SuppressWarnings("NullableProblems")
-    public boolean containsAll(Collection<?> collection) {
-        throw new RuntimeException("Not yet implemented");
-    }
-
+    /**
+     * Get element at specified index.
+     * <p>
+     * Please note that this creates a new instance using the stored element data and is therefore
+     * not the recommended usecase because of the performance penalty. It's implemented for convenience, but
+     * there are alternatives such as the propertyIterator and getXX...[implement]
+     *
+     * @param index The index of the element data
+     * @return a new element instance
+     */
     @Override
     @SuppressWarnings("unchecked")
     public E get(int index) {
@@ -173,14 +168,15 @@ public class ContiguousList<E> implements List<E> {
         }
         data.position(elementIndices[index]);
         try {
-            if (type instanceof PrimitiveTypeHandler<?>) {
-                return (E)((PrimitiveTypeHandler<?>)type).transform(ValueReader.read(data));
+            if (rootHandler instanceof BuiltinTypeHandler<?>) {
+                Object read = ValueReader.read(data);
+                return (E) ((BuiltinTypeHandler<?>) rootHandler).transform(read);
             }
             // create a new instance of the list element type
-            E newInstance = (E) type.getType().getDeclaredConstructor().newInstance();
+            E newInstance = (E) rootHandler.getType().getDeclaredConstructor().newInstance();
 
             // set the data
-            setProperties(newInstance, (CompoundTypeHandler) type);
+            setProperties(newInstance, (CompoundTypeHandler) rootHandler);
 
             return newInstance;
         } catch (NoSuchMethodException | InstantiationException | IllegalAccessException |
@@ -191,8 +187,8 @@ public class ContiguousList<E> implements List<E> {
 
     private void setProperties(Object element, CompoundTypeHandler compoundType) {
         compoundType.getProperties().forEach(property -> {
-            if (property instanceof PrimitiveTypeHandler) {
-                PrimitiveTypeHandler<?> type =((PrimitiveTypeHandler<?>) property);
+            if (property instanceof BuiltinTypeHandler) {
+                BuiltinTypeHandler<?> type = ((BuiltinTypeHandler<?>) property);
                 type.setValue(element, ValueReader.read(data));
             } else {
                 try {
@@ -212,6 +208,65 @@ public class ContiguousList<E> implements List<E> {
         });
     }
 
+    /**
+     * Returns an {@link Iterator} over the property values in the List. That is, it iterates all
+     * bean property values in a fixed order for all elements.
+     * <p>
+     * Because the values differ in type the output type is Object
+     *
+     * NB the actual type (right now) is the `raw` value: all integers are of type Long, BigInteger is String
+     * // That is unfortunate (or must I say: annoying!), but for something like JSON not a problem (I think).
+     * // So maybe keep this in (say 'rawValueIterator') and also create a typesafe iterator.
+     * <p>
+     * It detects {@link ConcurrentModificationException} if the underlying list was updated while iterating.
+     * <p>
+     * // I should probably include a type so that the caller could cast to the correct type
+     * // not sure yet
+     *
+     * @return an Iterator<?>
+     */
+    public Iterator<?> valueIterator() {
+        return new ValueIterator();
+    }
+
+    class ValueIterator implements Iterator<Object> {
+        private final int originalSize;
+        private final int originalPosition;
+
+        ValueIterator() {
+            this.originalSize = size;
+            this.originalPosition = data.position();
+            data.position(0);
+        }
+
+        @Override
+        public boolean hasNext() {
+            return data.position() < originalPosition;
+        }
+
+        @Override
+        public Object next() {
+            if (originalSize != size) {
+                throw new ConcurrentModificationException("Modifications detected while iterating.");
+            }
+            /* The following depends on the bytebuffer position. Calling add(..) would mess it up
+             * so that's why we first check for modifications (me and the computer)
+             *
+             * I could also maintain the position here. But you main want to fail ... dunno */
+            return ValueReader.read(data);
+        }
+    }
+
+    /**
+     * Returns an {@link Iterator} over the property values of the specified element in the List.
+     *
+     * @return
+     */
+    public Iterator<Object> valueIterator(int index) {
+        //TODO
+        return null;
+    }
+
     public boolean addAll(Collection<? extends E> collection) {
         for (E element : collection) {
             add(element);
@@ -219,82 +274,9 @@ public class ContiguousList<E> implements List<E> {
         return true;
     }
 
-    @Override
-    @SuppressWarnings("NullableProblems")
-    public boolean addAll(int i, Collection<? extends E> collection) {
-        throw new RuntimeException("Not yet implemented");
-    }
-
-    @Override
-    @SuppressWarnings("NullableProblems")
-    public boolean removeAll(Collection<?> collection) {
-        throw new RuntimeException("Not implemented");
-    }
-
-    @Override
-    @SuppressWarnings("NullableProblems")
-    public boolean retainAll(Collection<?> collection) {
-        throw new RuntimeException("Not implemented");
-    }
-
-    @Override
-    public void replaceAll(UnaryOperator<E> operator) {
-        throw new RuntimeException("Not yet implemented");
-    }
-
-    @Override
-    public void sort(Comparator<? super E> c) {
-        throw new RuntimeException("Not implemented");
-    }
-
     public void clear() {
-        this.currentElementIndex = 0;
+        this.currentElementValueIndex = 0;
         this.size = 0;
-    }
-
-    @Override
-    public E set(int i, E e) {
-        throw new RuntimeException("Not implemented");
-    }
-
-    @Override
-    public void add(int i, E e) {
-        throw new RuntimeException("Not implemented");
-    }
-
-    @Override
-    public E remove(int i) {
-        throw new RuntimeException("Not implemented");
-    }
-
-    @Override
-    public int indexOf(Object o) {
-        throw new RuntimeException("Not implemented");
-    }
-
-    @Override
-    public int lastIndexOf(Object o) {
-        throw new RuntimeException("Not implemented");
-    }
-
-    @Override
-    public ListIterator<E> listIterator() {
-        throw new RuntimeException("Not yet implemented");
-    }
-
-    @Override
-    public ListIterator<E> listIterator(int i) {
-        throw new RuntimeException("Not yet implemented");
-    }
-
-    @Override
-    public List<E> subList(int i, int i1) {
-        throw new RuntimeException("Not yet implemented");
-    }
-
-    @Override
-    public Spliterator<E> spliterator() {
-        return List.super.spliterator();
     }
 
     public int size() {
@@ -307,13 +289,8 @@ public class ContiguousList<E> implements List<E> {
     }
 
     @Override
-    public boolean contains(Object o) {
-        throw new RuntimeException("Not implemented");
-    }
-
-    @Override
     public Iterator<E> iterator() {
-        return new Iter<>();
+        return new ElementIterator<>();
     }
 
     @Override
@@ -338,9 +315,15 @@ public class ContiguousList<E> implements List<E> {
     }
 
 
-    class Iter<F> implements Iterator<F> {
+    class ElementIterator<F> implements Iterator<F> {
 
         private int curIndex = 0;
+        private final int originalSize;
+
+        ElementIterator() {
+            this.originalSize = size;
+            data.position(0);
+        }
 
         @Override
         public boolean hasNext() {
@@ -356,15 +339,15 @@ public class ContiguousList<E> implements List<E> {
 
     private void store(byte[] bytes) {
         ensureFree(bytes.length);
-        data.position(currentElementIndex); // ensures intermittent reads/writes
+        data.position(currentElementValueIndex); // ensures intermittent reads/writes are safe
         data.put(bytes);
-        currentElementIndex += bytes.length;
+        currentElementValueIndex += bytes.length;
     }
 
     private void store0() {
         ensureFree(1);
         data.put((byte) 0);
-        currentElementIndex += 1;
+        currentElementValueIndex += 1;
     }
 
     void storeString(String value) {
@@ -436,7 +419,7 @@ public class ContiguousList<E> implements List<E> {
     }
 
     byte[] getData() {
-        return Arrays.copyOfRange(data.array(), 0, currentElementIndex);
+        return Arrays.copyOfRange(data.array(), 0, currentElementValueIndex);
     }
 
     int[] getElementIndices() {
@@ -444,7 +427,7 @@ public class ContiguousList<E> implements List<E> {
     }
 
     private void ensureFree(int length) {
-        while (currentElementIndex + length > data.capacity()) {
+        while (currentElementValueIndex + length > data.capacity()) {
             byte[] bytes = this.data.array();
             this.data = ByteBuffer.allocate(this.data.capacity() * 2);
             this.data.put(bytes);

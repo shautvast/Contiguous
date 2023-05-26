@@ -11,7 +11,7 @@ import java.util.Map;
  * Maps the propertyvalue type to a PropertyHandler
  */
 final class PropertyHandlerFactory {
-    private static final Map<Class<?>, Class<? extends PrimitiveTypeHandler<?>>> TYPE_HANDLERS = new HashMap<>();
+    private static final Map<Class<?>, Class<? extends BuiltinTypeHandler<?>>> TYPE_HANDLERS = new HashMap<>();
 
     private PropertyHandlerFactory() {
     }
@@ -41,13 +41,13 @@ final class PropertyHandlerFactory {
         return TYPE_HANDLERS.containsKey(type);
     }
 
-    public static <T> PrimitiveTypeHandler<T> forType(Class<T> type, MethodHandle getter, MethodHandle setter) {
+    public static <T> BuiltinTypeHandler<T> forType(Class<T> type, MethodHandle getter, MethodHandle setter) {
         try {
-            Class<? extends PrimitiveTypeHandler<?>> appenderClass = TYPE_HANDLERS.get(type);
+            Class<? extends BuiltinTypeHandler<?>> appenderClass = TYPE_HANDLERS.get(type);
             if (appenderClass == null) {
                 throw new IllegalStateException("No Handler for " + type.getName());
             }
-            return (PrimitiveTypeHandler<T>) appenderClass.getDeclaredConstructor(MethodHandle.class, MethodHandle.class)
+            return (BuiltinTypeHandler<T>) appenderClass.getDeclaredConstructor(MethodHandle.class, MethodHandle.class)
                     .newInstance(getter, setter);
         } catch (NoSuchMethodException | InstantiationException | IllegalAccessException |
                  InvocationTargetException e) {
@@ -55,14 +55,14 @@ final class PropertyHandlerFactory {
         }
     }
 
-    public static <T> PrimitiveTypeHandler<T> forType(Class<T> type) {
+    public static <T> BuiltinTypeHandler<T> forType(Class<T> type) {
         return forType(type, null, null);
     }
 
     /**
      * register a new TypeHandler that cannot be derived from bean properties
      */
-    public static void register(Class<?> type, Class<? extends PrimitiveTypeHandler<?>> typehandler) {
+    public static void register(Class<?> type, Class<? extends BuiltinTypeHandler<?>> typehandler) {
         TYPE_HANDLERS.put(type, typehandler);
     }
 }

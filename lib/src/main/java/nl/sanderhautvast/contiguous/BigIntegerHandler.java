@@ -3,7 +3,7 @@ package nl.sanderhautvast.contiguous;
 import java.lang.invoke.MethodHandle;
 import java.math.BigInteger;
 
-class BigIntegerHandler extends PrimitiveTypeHandler<BigInteger> {
+class BigIntegerHandler extends BuiltinTypeHandler<BigInteger> {
     public BigIntegerHandler(MethodHandle getter, MethodHandle setter) {
         super(BigInteger.class, getter, setter);
     }

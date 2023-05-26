@@ -2,7 +2,7 @@ package nl.sanderhautvast.contiguous;
 
 import java.lang.invoke.MethodHandle;
 
-class LongHandler extends PrimitiveTypeHandler<Long> {
+class LongHandler extends BuiltinTypeHandler<Long> {
     public LongHandler(MethodHandle getter, MethodHandle setter) {
         super(Long.class, getter, setter);
     }
