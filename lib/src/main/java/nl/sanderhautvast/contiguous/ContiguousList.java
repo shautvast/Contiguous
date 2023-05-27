@@ -8,6 +8,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.UnaryOperator;
 
+//notes:
+//1. should find out growth factor of arraylist
+//2. elementIndices can be arrayList
 /**
  * Short for Contiguous Layout List, an Experimental List implementation
  * Behaves like an ArrayList in that it's resizable and indexed.
