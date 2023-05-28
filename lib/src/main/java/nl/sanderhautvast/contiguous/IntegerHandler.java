@@ -22,7 +22,7 @@ class IntegerHandler extends BuiltinTypeHandler<Integer> {
     }
 
     @Override
-    public Object transform(Object value) {
+    public Object cast(Object value) {
         // could be Long (raw value)
         // or Integer when it's a property with known type
         if (value instanceof Long) {

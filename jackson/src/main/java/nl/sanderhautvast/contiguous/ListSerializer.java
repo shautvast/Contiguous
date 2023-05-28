@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 public class ListSerializer<E> extends StdSerializer<ContiguousList<E>> {
 
@@ -17,7 +18,6 @@ public class ListSerializer<E> extends StdSerializer<ContiguousList<E>> {
     public void serialize(
             ContiguousList<E> value, JsonGenerator jgen, SerializerProvider provider)
             throws IOException, JsonProcessingException {
-
 //        value.
 
 //        jgen.writeStartObject();

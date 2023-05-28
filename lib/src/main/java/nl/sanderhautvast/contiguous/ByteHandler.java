@@ -22,7 +22,7 @@ class ByteHandler extends BuiltinTypeHandler<Byte> {
     }
 
     @Override
-    public Object transform(Object value) {
+    public Object cast(Object value) {
         if (value instanceof Long) {
             return ((Long) value).byteValue();
         }

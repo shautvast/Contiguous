@@ -54,7 +54,7 @@ public abstract class BuiltinTypeHandler<T> extends TypeHandler {
      */
     public void setValue(Object instance, Object value) {
         try {
-            setter.invokeWithArguments(instance, transform(value));
+            setter.invokeWithArguments(instance, cast(value));
         } catch (Throwable e) {
             throw new IllegalStateException(e);
         }
@@ -64,13 +64,13 @@ public abstract class BuiltinTypeHandler<T> extends TypeHandler {
      * Certain types can easily be stored as another known type, for instance
      * a BigDecimal can be stored as a String.
      * <p>
-     * The {@link BuiltinTypeHandler} for BigDecimal would in that case be responsible for turning the String
-     * into a BigDecimal. It can do that by overriding this method
+     * The {@link BuiltinTypeHandler} for BigDecimal would in that case be responsible for casting the String
+     * into a BigDecimal. It can do that by overriding this method.
      *
      * @param value raw value to transform to the desired output type
      * @return the transformed object
      */
-    public Object transform(Object value) {
+    public Object cast(Object value) {
         return value;
     }
 }

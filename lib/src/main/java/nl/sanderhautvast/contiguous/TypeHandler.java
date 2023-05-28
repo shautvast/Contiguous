@@ -2,11 +2,13 @@ package nl.sanderhautvast.contiguous;
 
 import java.lang.invoke.MethodHandle;
 
-/*
- * ok, sorry
+/**
+ * Abstract basertype over handlers for 'primitives' (ie. long, but also Long,
+ * String..=> built-in types) and compound types (your own).
  *
- * I needed to abstract over handlers for 'primitives' (ie. long, but also Long, String..=> built-in types) and compound types (your own)
- * So this is the common ancestor. The respective functions are completely different.
+ * Common ancestor primarily to iterator over properties of any type.
+ * The respective functions are completely different though, and we need `instanceof` to check for the
+ * actual type. (Rust enums!)
  */
 public abstract class TypeHandler {
 

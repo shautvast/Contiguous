@@ -14,7 +14,7 @@ class BigDecimalHandler extends BuiltinTypeHandler<BigDecimal> {
     }
 
     @Override
-    public Object transform(Object value) {
+    public Object cast(Object value) {
         return new BigDecimal((String) value);
     }
 }

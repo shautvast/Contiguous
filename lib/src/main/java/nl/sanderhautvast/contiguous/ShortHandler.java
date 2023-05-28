@@ -18,7 +18,7 @@ class ShortHandler extends BuiltinTypeHandler<Short> {
     }
 
     @Override
-    public Object transform(Object value) {
+    public Object cast(Object value) {
         if (value instanceof Long) {
             return ((Long) value).shortValue();
         }

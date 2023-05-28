@@ -14,7 +14,7 @@ class BigIntegerHandler extends BuiltinTypeHandler<BigInteger> {
     }
 
     @Override
-    public Object transform(Object value) {
+    public Object cast(Object value) {
         return new BigInteger((String) value);
     }
 }
