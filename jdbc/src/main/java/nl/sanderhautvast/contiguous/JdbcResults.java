@@ -41,7 +41,13 @@ public class JdbcResults {
                 String fieldName = next.getFieldName();
                 Object fieldValue;
                 if (fieldName != null) {
-                    fieldValue = result.getObject(fieldNameMapper.apply(fieldName));
+                    String columnName = fieldNameMapper.apply(fieldName);
+                    if (columnName == null) {
+                        columnName = fieldName;
+                    } // would it be usefull if we could add this to the state (convert Function<> to Map<>)?
+                      // so that next time the entry would be in the map...
+                      // -> more branch predicability for the `if`
+                    fieldValue = result.getObject(columnName);
                 } else {
                     // assume single Primitive as Contiguous<String>, so just 1 column in the record
                     fieldValue = result.getObject(1);

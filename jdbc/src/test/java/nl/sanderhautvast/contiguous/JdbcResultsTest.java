@@ -56,7 +56,7 @@ class JdbcResultsTest {
         when(mockResults.getObject("name")).thenReturn("Trillian");
         when(mockResults.getObject("realName")).thenReturn("Tricia MacMillan");
 
-        Map<String, String> nameMapping = Map.of("name", "name", "earthName", "realName");
+        Map<String, String> nameMapping = Map.of("earthName", "realName");
         List<Scientist> scientists = JdbcResults.toList(mockResults, Scientist.class, nameMapping::get);
 
         assertFalse(scientists.isEmpty());
@@ -66,6 +66,4 @@ class JdbcResultsTest {
         assertEquals("Trillian", scientist.getName());
         assertEquals("Tricia MacMillan", scientist.getEarthName());
     }
-
-
 }
