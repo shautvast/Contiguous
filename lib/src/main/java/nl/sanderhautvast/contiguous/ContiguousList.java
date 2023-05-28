@@ -8,15 +8,17 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 //notes:
-//1. should find out growth factor of arraylist
-//2. elementIndices can be arrayList
+// should find out growth factor of arraylist
+// investigate data array reuse (pooling, SoftReferences etc)
+
 /**
  * Short for Contiguous Layout List, an Experimental List implementation
  * Behaves like an ArrayList in that it's resizable and indexed.
  * The difference is that it uses an efficiently dehydrated version of the object in a  cpu cache friendly, contiguous storage in a bytearray,
  * without object instance overhead.
  * <p>
- * Only uses reflection api on creation of the list.
+ * Only uses reflection api on creation of the list (and in the get() method, but the end user should employ value
+ * iteration rather than element iteration using said get method).
  * Adding/Retrieving/Deleting depend on VarHandles and are aimed to be O(L) runtime complexity
  * where L is the nr of attributes to get/set from the objects (recursively).So O(1) for length of the list
  * <p>
@@ -35,6 +37,11 @@ import java.util.*;
  * Implements java.util.List but some methods are not (yet) implemented mainly because they don't make much sense
  * performance-wise, like the indexed add and set methods. They mess with the memory layout. The list is meant to
  * be appended at the tail.
+ * <p>
+ * What I think is a potential use case is a simple CRUD application.
+ * Here it would become possible to skip Object (when reading from the database),
+ * and directly map the results to JSON. Both writing and reading should ideally be faster
+ * than doing it the regular way.
  */
 public class ContiguousList<E> extends NotImplementedList<E> implements List<E> {
 
@@ -52,7 +59,8 @@ public class ContiguousList<E> extends NotImplementedList<E> implements List<E> 
 
     private int currentElementValueIndex;
 
-    private int[] elementIndices = new int[10];
+    private int[] elementIndices = new int[10]; // avoids autoboxing. Could also use standard ArrayList though
+    // is there a standard lib IntList??
 
     private int size;
 
@@ -75,7 +83,7 @@ public class ContiguousList<E> extends NotImplementedList<E> implements List<E> 
         if (PropertyHandlerFactory.isKnownType(type)) {
             this.rootHandler = PropertyHandlerFactory.forType(type);
         } else {
-            CompoundTypeHandler compoundType = new CompoundTypeHandler(type);
+            CompoundTypeHandler compoundType = new CompoundTypeHandler(type, null);//TODO revisit
             this.rootHandler = compoundType;
             try {
                 addPropertyHandlersForCompoundType(type, compoundType);
@@ -95,11 +103,11 @@ public class ContiguousList<E> extends NotImplementedList<E> implements List<E> 
                         MethodHandle setter = lookup.findSetter(type, field.getName(), fieldType);
 
                         if (PropertyHandlerFactory.isKnownType(fieldType)) {
-                            BuiltinTypeHandler<?> primitiveType = PropertyHandlerFactory.forType(fieldType, getter, setter);
+                            BuiltinTypeHandler<?> primitiveType = PropertyHandlerFactory.forType(fieldType, field.getName(), getter, setter);
 
                             parentCompoundType.addHandler(field.getName(), primitiveType);
                         } else {
-                            CompoundTypeHandler newParent = new CompoundTypeHandler(fieldType);
+                            CompoundTypeHandler newParent = new CompoundTypeHandler(fieldType, field.getName());
                             newParent.setGetter(getter);
                             newParent.setSetter(setter);
                             parentCompoundType.addChild(field, newParent);
@@ -170,7 +178,7 @@ public class ContiguousList<E> extends NotImplementedList<E> implements List<E> 
         try {
             if (rootHandler instanceof BuiltinTypeHandler<?>) {
                 Object read = ValueReader.read(data);
-                return (E) ((BuiltinTypeHandler<?>) rootHandler).transform(read);
+                return (E) ((BuiltinTypeHandler<?>) rootHandler).cast(read);
             }
             // create a new instance of the list element type
             E newInstance = (E) rootHandler.getType().getDeclaredConstructor().newInstance();
@@ -295,14 +303,74 @@ public class ContiguousList<E> extends NotImplementedList<E> implements List<E> 
             }
             handler = typeHandlersIterator.next();
 
-            return handler.transform(rawValue);
+            return handler.cast(rawValue);
         }
     }
 
     /**
-     * Returns an {@link Iterator} over the property values of the specified element in the List.
+     * Allows 'iterating insertion of data'. Returns an iterator of Setter
+     * Does not work for compound types yet
      *
-     * @return
+     * @return A Reusable iterator
+     */
+    public SetterIterator setterIterator() {
+        return new SetterIterator();
+    }
+
+    public class Setter {
+
+        private final BuiltinTypeHandler<?> currentHandler;
+
+        public Setter(BuiltinTypeHandler<?> currentHandler) {
+            this.currentHandler = currentHandler;
+        }
+
+        public String getFieldName() {
+            return currentHandler.getName();
+        }
+
+        public void set(Object fieldValue) {
+            currentHandler.storeValue(fieldValue, ContiguousList.this);
+        }
+    }
+
+    // TODO proper naming
+    // BTW do we even need this as a class??
+    public class SetterIterator implements Iterator<Setter> {
+        private final List<Setter> properties = new ArrayList<>();
+        private Iterator<Setter> currentSetterIterator;
+
+        public SetterIterator() {
+            List<BuiltinTypeHandler<?>> builtinTypeHandlers = getBuiltinTypeHandlers();
+            for (BuiltinTypeHandler<?> builtinTypeHandler : builtinTypeHandlers) {
+                properties.add(new Setter(builtinTypeHandler));
+            }
+            // what to do with compound?
+            currentSetterIterator = this.properties.iterator();
+        }
+
+        @Override
+        public boolean hasNext() {
+            boolean hasNext = currentSetterIterator.hasNext();
+            if (!hasNext){
+                extend(); // marks the end of an object
+            }
+            return hasNext;
+        }
+
+        @Override
+        public Setter next() {
+            return currentSetterIterator.next();
+        }
+
+        public void nextRecord() {
+            currentSetterIterator = properties.iterator();
+        }
+
+    }
+
+    /**
+     * @return an {@link Iterator} over the property values of the specified element in the List.
      */
     public Iterator<Object> valueIterator(int index) {
         //TODO
@@ -400,6 +468,12 @@ public class ContiguousList<E> extends NotImplementedList<E> implements List<E> 
             store(Varint.write(((long) (utf.length) << 1) + STRING_OFFSET));
             store(utf);
         }
+    }
+
+    // to be called by framework to force element count
+    // used by SetterIterator
+    void extend() {
+        size += 1;
     }
 
     void storeLong(Long value) {

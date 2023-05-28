@@ -3,8 +3,8 @@ package nl.sanderhautvast.contiguous;
 import java.lang.invoke.MethodHandle;
 
 class IntegerHandler extends BuiltinTypeHandler<Integer> {
-    public IntegerHandler(MethodHandle getter, MethodHandle setter) {
-        super(Integer.class, getter, setter);
+    public IntegerHandler(String propertyName, MethodHandle getter, MethodHandle setter) {
+        super(Integer.class, propertyName, getter, setter);
     }
 
     @Override

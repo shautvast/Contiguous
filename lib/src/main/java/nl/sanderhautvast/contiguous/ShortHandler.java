@@ -3,8 +3,8 @@ package nl.sanderhautvast.contiguous;
 import java.lang.invoke.MethodHandle;
 
 class ShortHandler extends BuiltinTypeHandler<Short> {
-    public ShortHandler(MethodHandle getter, MethodHandle setter) {
-        super(Short.class, getter, setter);
+    public ShortHandler(String propertyName, MethodHandle getter, MethodHandle setter) {
+        super(Short.class, propertyName, getter, setter);
     }
 
     @Override

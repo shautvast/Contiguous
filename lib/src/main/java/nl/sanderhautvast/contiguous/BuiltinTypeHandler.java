@@ -12,8 +12,8 @@ import java.lang.invoke.MethodHandle;
  * ie. when a bean is added or retrieved from the list
  */
 public abstract class BuiltinTypeHandler<T> extends TypeHandler {
-    public BuiltinTypeHandler(Class<?> type, MethodHandle getter, MethodHandle setter) {
-        super(type, getter, setter);
+    public BuiltinTypeHandler(Class<?> type, String name, MethodHandle getter, MethodHandle setter) {
+        super(type, name, getter, setter);
     }
 
     /**
@@ -27,6 +27,10 @@ public abstract class BuiltinTypeHandler<T> extends TypeHandler {
     void storePropertyValue(Object instance, ContiguousList<?> typedList) {
         T propertyValue = getValue(instance);
         store(propertyValue, typedList);
+    }
+
+    void storeValue(Object value, ContiguousList<?> contiguousList) {
+        store((T)value, contiguousList);
     }
 
     private T getValue(Object propertyValue) {

@@ -3,8 +3,8 @@ package nl.sanderhautvast.contiguous;
 import java.lang.invoke.MethodHandle;
 
 class LongHandler extends BuiltinTypeHandler<Long> {
-    public LongHandler(MethodHandle getter, MethodHandle setter) {
-        super(Long.class, getter, setter);
+    public LongHandler(String propertyName, MethodHandle getter, MethodHandle setter) {
+        super(Long.class, propertyName, getter, setter);
     }
 
     @Override

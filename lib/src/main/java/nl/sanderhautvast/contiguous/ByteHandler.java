@@ -7,8 +7,8 @@ import java.lang.invoke.MethodHandle;
  */
 class ByteHandler extends BuiltinTypeHandler<Byte> {
 
-    public ByteHandler(MethodHandle getter, MethodHandle setter) {
-        super(Byte.class, getter, setter);
+    public ByteHandler(String propertyName, MethodHandle getter, MethodHandle setter) {
+        super(Byte.class, propertyName, getter, setter);
     }
 
     @Override

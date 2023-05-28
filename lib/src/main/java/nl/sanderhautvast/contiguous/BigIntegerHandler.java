@@ -4,8 +4,8 @@ import java.lang.invoke.MethodHandle;
 import java.math.BigInteger;
 
 class BigIntegerHandler extends BuiltinTypeHandler<BigInteger> {
-    public BigIntegerHandler(MethodHandle getter, MethodHandle setter) {
-        super(BigInteger.class, getter, setter);
+    public BigIntegerHandler(String propertyName, MethodHandle getter, MethodHandle setter) {
+        super(BigInteger.class, propertyName, getter, setter);
     }
 
     @Override

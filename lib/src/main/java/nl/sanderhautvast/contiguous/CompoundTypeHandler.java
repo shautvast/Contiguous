@@ -8,8 +8,8 @@ class CompoundTypeHandler extends TypeHandler {
 
 
 
-    CompoundTypeHandler(Class<?> type) {
-        super(type, null,null);
+    CompoundTypeHandler(Class<?> type, String propertyName) {
+        super(type, propertyName, null,null);
     }
 
 

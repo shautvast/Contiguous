@@ -10,6 +10,7 @@
     <modules>
         <module>lib</module>
         <module>demo</module>
+        <module>jdbc</module>
         <module>jackson</module>
     </modules>
     <name>contiguous</name>

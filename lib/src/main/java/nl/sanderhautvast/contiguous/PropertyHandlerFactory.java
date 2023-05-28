@@ -41,14 +41,14 @@ final class PropertyHandlerFactory {
         return TYPE_HANDLERS.containsKey(type);
     }
 
-    public static <T> BuiltinTypeHandler<T> forType(Class<T> type, MethodHandle getter, MethodHandle setter) {
+    public static <T> BuiltinTypeHandler<T> forType(Class<T> type, String name, MethodHandle getter, MethodHandle setter) {
         try {
             Class<? extends BuiltinTypeHandler<?>> appenderClass = TYPE_HANDLERS.get(type);
             if (appenderClass == null) {
                 throw new IllegalStateException("No Handler for " + type.getName());
             }
-            return (BuiltinTypeHandler<T>) appenderClass.getDeclaredConstructor(MethodHandle.class, MethodHandle.class)
-                    .newInstance(getter, setter);
+            return (BuiltinTypeHandler<T>) appenderClass.getDeclaredConstructor(String.class, MethodHandle.class, MethodHandle.class)
+                    .newInstance(name, getter, setter);
         } catch (NoSuchMethodException | InstantiationException | IllegalAccessException |
                  InvocationTargetException e) {
             throw new IllegalStateException(e);
@@ -56,7 +56,7 @@ final class PropertyHandlerFactory {
     }
 
     public static <T> BuiltinTypeHandler<T> forType(Class<T> type) {
-        return forType(type, null, null);
+        return forType(type, null, null, null);
     }
 
     /**

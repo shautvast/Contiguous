@@ -3,8 +3,8 @@ package nl.sanderhautvast.contiguous;
 import java.lang.invoke.MethodHandle;
 
 class FloatHandler extends BuiltinTypeHandler<Float> {
-    public FloatHandler(MethodHandle getter, MethodHandle setter) {
-        super(Float.class, getter, setter);
+    public FloatHandler(String propertyName, MethodHandle getter, MethodHandle setter) {
+        super(Float.class, propertyName, getter, setter);
     }
 
     @Override

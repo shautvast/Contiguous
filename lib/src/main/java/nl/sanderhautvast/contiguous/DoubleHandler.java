@@ -6,8 +6,8 @@ import java.lang.invoke.MethodHandle;
  * Stores a double value.
  */
 class DoubleHandler extends BuiltinTypeHandler<Double> {
-    public DoubleHandler(MethodHandle getter, MethodHandle setter) {
-        super(Double.class, getter, setter);
+    public DoubleHandler(String propertyName, MethodHandle getter, MethodHandle setter) {
+        super(Double.class, propertyName, getter, setter);
     }
 
     @Override
