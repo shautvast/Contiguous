@@ -4,10 +4,15 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>nl.sanderhautvast</groupId>
+    <parent>
+        <groupId>nl.sanderhautvast</groupId>
+        <artifactId>contiguous-pom</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
     <artifactId>contiguous</artifactId>
+
     <description>Datastructures with contiguous storage. Core library with no external dependencies</description>
-    <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <properties>

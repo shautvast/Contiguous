@@ -28,6 +28,9 @@ public class JdbcResults {
     /**
      * Adds the data to an existing CList.
      *
+     * The fieldNameMapper Function does not have to map for column names that do match. So only non-equal
+     * names have to be mapped.
+     *
      * @param result          the JDBC ResultSet
      * @param list            The list to add to
      * @param fieldNameMapper maps the name from the element type property to the actual database column name
@@ -72,7 +75,10 @@ public class JdbcResults {
 
     /**
      * Same as addAll, but creates a new CList.
-     *
+     * <p>
+     * The fieldNameMapper Function does not have to map for column names that do match. So only non-equal
+     * names have to be mapped.
+     * <p>
      * @param result          The CList
      * @param elementType     the desired Object type
      * @param fieldNameMapper maps the name from the element type property to the actual database column name
