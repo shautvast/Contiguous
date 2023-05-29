@@ -10,6 +10,7 @@ import java.util.*;
 //notes:
 // should find out growth factor of arraylist
 // investigate data array reuse (pooling, SoftReferences etc)
+// is all this inner class usage not wasteful? (references to this etc)
 
 /**
  * Short for Contiguous Layout List, an Experimental List implementation
@@ -66,9 +67,16 @@ public class ContiguousList<E> extends NotImplementedList<E> implements List<E> 
 
     private TypeHandler rootHandler;
 
+    private final Map<String, Integer> propertyNames;
+
     public ContiguousList(Class<E> type) {
         inspectType(type);
-        elementIndices[0] = currentElementValueIndex; // index of first element
+        elementIndices[0] = 0; // index of first element
+        propertyNames = findPropertyNames();
+    }
+
+    public Class<?> getElementType() {
+        return rootHandler.getType();
     }
 
     /*
@@ -80,7 +88,7 @@ public class ContiguousList<E> extends NotImplementedList<E> implements List<E> 
      * object graph. It only knows the 'primitive' values.
      */
     private void inspectType(Class<?> type) {
-        if (PropertyHandlerFactory.isKnownType(type)) {
+        if (PropertyHandlerFactory.isBuiltInType(type)) {
             this.rootHandler = PropertyHandlerFactory.forType(type);
         } else {
             CompoundTypeHandler compoundType = new CompoundTypeHandler(type, null);//TODO revisit
@@ -93,6 +101,9 @@ public class ContiguousList<E> extends NotImplementedList<E> implements List<E> 
         }
     }
 
+    /*
+     * using reflection find all properties in the element, recursing down when the property is compound
+     */
     private void addPropertyHandlersForCompoundType(Class<?> type, CompoundTypeHandler parentCompoundType) throws IllegalAccessException {
         final MethodHandles.Lookup lookup = MethodHandles.privateLookupIn(type, MethodHandles.lookup());
         Arrays.stream(type.getDeclaredFields())
@@ -102,7 +113,7 @@ public class ContiguousList<E> extends NotImplementedList<E> implements List<E> 
                         MethodHandle getter = lookup.findGetter(type, field.getName(), fieldType);
                         MethodHandle setter = lookup.findSetter(type, field.getName(), fieldType);
 
-                        if (PropertyHandlerFactory.isKnownType(fieldType)) {
+                        if (PropertyHandlerFactory.isBuiltInType(fieldType)) {
                             BuiltinTypeHandler<?> primitiveType = PropertyHandlerFactory.forType(fieldType, field.getName(), getter, setter);
 
                             parentCompoundType.addHandler(field.getName(), primitiveType);
@@ -126,7 +137,7 @@ public class ContiguousList<E> extends NotImplementedList<E> implements List<E> 
         if (element == null) {
             return false;
         }
-        getProperties(element, rootHandler);
+        storePropertyData(element, rootHandler);
         size += 1;
 
         // keep track of where the objects are stored
@@ -137,7 +148,13 @@ public class ContiguousList<E> extends NotImplementedList<E> implements List<E> 
         return true;
     }
 
-    private void getProperties(Object element, TypeHandler typeHandler) {
+    /*
+     * Stores the properties
+     *
+     * walks the object graph depth-first. The order of the stored data is crucial, because only
+     * leaf elements are stored and all information on what object owns what is implicit.
+     */
+    private void storePropertyData(Object element, TypeHandler typeHandler) {
         if (typeHandler instanceof BuiltinTypeHandler<?>) {
             ((BuiltinTypeHandler<?>) typeHandler).storePropertyValue(element, this);
         } else {
@@ -149,7 +166,7 @@ public class ContiguousList<E> extends NotImplementedList<E> implements List<E> 
                     CompoundTypeHandler child = ((CompoundTypeHandler) property);
                     try {
                         Object result = child.getGetter().invoke(element);
-                        getProperties(result, child);
+                        storePropertyData(result, child);
                     } catch (Throwable e) {
                         throw new RuntimeException(e);
                     }
@@ -184,7 +201,7 @@ public class ContiguousList<E> extends NotImplementedList<E> implements List<E> 
             E newInstance = (E) rootHandler.getType().getDeclaredConstructor().newInstance();
 
             // set the data
-            setProperties(newInstance, (CompoundTypeHandler) rootHandler);
+            copyDataIntoNewObjects(newInstance, (CompoundTypeHandler) rootHandler);
 
             return newInstance;
         } catch (NoSuchMethodException | InstantiationException | IllegalAccessException |
@@ -193,7 +210,10 @@ public class ContiguousList<E> extends NotImplementedList<E> implements List<E> 
         }
     }
 
-    private void setProperties(Object element, CompoundTypeHandler compoundType) {
+    /*
+     *
+     */
+    private void copyDataIntoNewObjects(Object element, CompoundTypeHandler compoundType) {
         compoundType.getProperties().forEach(property -> {
             if (property instanceof BuiltinTypeHandler) {
                 BuiltinTypeHandler<?> type = ((BuiltinTypeHandler<?>) property);
@@ -208,7 +228,7 @@ public class ContiguousList<E> extends NotImplementedList<E> implements List<E> 
                     p.getSetter().invokeWithArguments(element, newInstance);
 
                     // recurse down
-                    setProperties(newInstance, p);
+                    copyDataIntoNewObjects(newInstance, p);
                 } catch (Throwable e) {
                     throw new RuntimeException(e);
                 }
@@ -231,15 +251,36 @@ public class ContiguousList<E> extends NotImplementedList<E> implements List<E> 
         return new ValueIterator();
     }
 
+    public Iterator<Property> propertyIterator() {
+        return new PropertyIterator();
+    }
+
+    static class Property {
+        String name;
+        String value;
+    }
+
+    static class PropertyIterator implements Iterator<Property> {
+
+        @Override
+        public boolean hasNext() {
+            return false;
+        }
+
+        @Override
+        public Property next() {
+            return null;
+        }
+    }
+
     /**
      * @return a list of types in the Object(graph). So the element type and all (nested) properties
      */
-    public List<Class<?>> getTypes() {
+    List<Class<?>> getTypes() {
         final List<Class<?>> types = new ArrayList<>();
         getTypes(rootHandler, types);
         return types;
     }
-
 
     private void getTypes(TypeHandler handler, List<Class<?>> types) {
         if (handler instanceof BuiltinTypeHandler<?>) {
@@ -250,6 +291,62 @@ public class ContiguousList<E> extends NotImplementedList<E> implements List<E> 
                     .forEach(propertyHandler -> getTypes(propertyHandler, types));
         }
     }
+
+    public List<String> getPropertyNames() {
+        return new ArrayList<>(this.propertyNames.keySet());//TODO should be SET!
+    }
+
+    /*
+     * walk the tree of typehandlers to find the names
+     * adds an index to know what index a property has
+     * this in turn is needed to find where the data of the property is in the byte array
+     *
+     * could also store property data indices, but that would incur more memory overhead
+     * the way it is now, we have to iterate all properties in an element. ie. a tradeoff
+     */
+    private Map<String, Integer> findPropertyNames() {
+        // no name for the root property
+        final Map<String, Integer> names = new HashMap<>();
+        if (rootHandler instanceof CompoundTypeHandler) {
+            ((CompoundTypeHandler) rootHandler).getProperties()
+                    .forEach(propertyHandler -> findPropertyNames(propertyHandler, names, 0));
+        }
+
+        return Collections.unmodifiableMap(names);
+    }
+
+
+    /*
+     * TODO
+     * // oopsie: the properties are not guaranteed to be unique
+     */
+    private void findPropertyNames(TypeHandler handler, Map<String, Integer> names, int index) {
+        if (handler instanceof BuiltinTypeHandler<?>) {
+            names.put(handler.getName(), index);
+        } else {
+            names.put(handler.getName(), index);
+            for (TypeHandler propertyHandler : ((CompoundTypeHandler) handler).getProperties()) {
+                findPropertyNames(propertyHandler, names, index++);
+            }
+        }
+    }
+
+    /**
+     * gets a named property of element at index
+     *
+     * @param index        elementIndex
+     * @param propertyName the name of the property
+     * @return the property value
+     */
+    public Object getValue(int index, String propertyName) {
+        if (rootHandler.isBuiltin() || propertyName == null) {
+            data.position(elementIndices[index]);
+            return ValueReader.read(data);
+        } else {
+            return null; //TODO implement
+        }
+    }
+
 
     List<BuiltinTypeHandler<?>> getBuiltinTypeHandlers() {
         final List<BuiltinTypeHandler<?>> types = new ArrayList<>();
@@ -307,6 +404,10 @@ public class ContiguousList<E> extends NotImplementedList<E> implements List<E> 
         }
     }
 
+    public boolean isSimpleElementType() {
+        return PropertyHandlerFactory.isBuiltInType(rootHandler.getType());
+    }
+
     /**
      * Allows 'iterating insertion of data'. Returns an iterator of Setter
      * Does not work for compound types yet
@@ -334,8 +435,6 @@ public class ContiguousList<E> extends NotImplementedList<E> implements List<E> 
         }
     }
 
-    // TODO proper naming
-    // BTW do we even need this as a class??
     public class SetterIterator implements Iterator<Setter> {
         private final List<Setter> properties = new ArrayList<>();
         private Iterator<Setter> currentSetterIterator;
@@ -352,7 +451,7 @@ public class ContiguousList<E> extends NotImplementedList<E> implements List<E> 
         @Override
         public boolean hasNext() {
             boolean hasNext = currentSetterIterator.hasNext();
-            if (!hasNext){
+            if (!hasNext) {
                 extend(); // marks the end of an object
             }
             return hasNext;
@@ -397,12 +496,6 @@ public class ContiguousList<E> extends NotImplementedList<E> implements List<E> 
     public boolean isEmpty() {
         return size == 0;
     }
-
-    @Override
-    public Iterator<E> iterator() {
-        return new ElementIterator<>();
-    }
-
     @Override
     public Object[] toArray() {
         Object[] objects = new Object[size];
@@ -424,16 +517,24 @@ public class ContiguousList<E> extends NotImplementedList<E> implements List<E> 
         return ts;
     }
 
+    /**
+     * Standard Iterator that conforms to the protocol of java.util.List.
+     * Although it's convenient to use, it's not the best way to read from the list because it
+     * needs the Reflection API to instantiate new objects of the element type.
+     * <p/>.
+     * @return An Iterator over the elements in the List
+     */
+    @Override
+    public Iterator<E> iterator() {
+        return new StandardElementIterator<>();
+    }
 
-    class ElementIterator<F> implements Iterator<F> {
+    /*
+     * Iterator used by the standard Iterator() method
+     */
+    class StandardElementIterator<F> implements Iterator<F> {
 
         private int curIndex = 0;
-        private final int originalSize;
-
-        ElementIterator() {
-            this.originalSize = size;
-            data.position(0);
-        }
 
         @Override
         public boolean hasNext() {
@@ -468,12 +569,6 @@ public class ContiguousList<E> extends NotImplementedList<E> implements List<E> 
             store(Varint.write(((long) (utf.length) << 1) + STRING_OFFSET));
             store(utf);
         }
-    }
-
-    // to be called by framework to force element count
-    // used by SetterIterator
-    void extend() {
-        size += 1;
     }
 
     void storeLong(Long value) {
@@ -532,6 +627,12 @@ public class ContiguousList<E> extends NotImplementedList<E> implements List<E> 
             store(FLOAT_TYPE);
             store(ByteBuffer.wrap(new byte[4]).putFloat(0, value).array());
         }
+    }
+
+    // to be called by framework to force element count
+    // used by SetterIterator
+    void extend() {
+        size += 1;
     }
 
     byte[] getData() {

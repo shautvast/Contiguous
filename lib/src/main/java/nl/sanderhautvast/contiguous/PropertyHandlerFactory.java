@@ -37,7 +37,7 @@ final class PropertyHandlerFactory {
         //LocalDate/time
     }
 
-    public static boolean isKnownType(Class<?> type) {
+    public static boolean isBuiltInType(Class<?> type) {
         return TYPE_HANDLERS.containsKey(type);
     }
 

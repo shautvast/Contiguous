@@ -217,7 +217,7 @@ public class ContiguousListTest {
 
     @Test
     public void testGetStoredTypesDeepCompound() {
-        ContiguousList<DeepBean> beans = new ContiguousList<>(DeepBean.class);
+        final ContiguousList<DeepBean> beans = new ContiguousList<>(DeepBean.class);
         Iterator<Class<?>> typeIterator = beans.getTypes().iterator();
         assertTrue(typeIterator.hasNext());
         assertEquals(DeepBean.class, typeIterator.next());
@@ -255,5 +255,28 @@ public class ContiguousListTest {
         if (typeIterator.hasNext()) {
             assertEquals(Integer.class, typeIterator.next());
         }
+    }
+
+    @Test
+    public void testGetPropertyNamesForBuiltinElementType(){
+        ContiguousList<Integer> integers = new ContiguousList<>(Integer.class);
+        assertTrue(integers.getPropertyNames().isEmpty());
+    }
+
+    @Test
+    public void testGetPropertyNames(){
+        ContiguousList<IntBean> integers = new ContiguousList<>(IntBean.class);
+        assertFalse(integers.getPropertyNames().isEmpty());
+        assertEquals("value", integers.getPropertyNames().get(0));
+    }
+
+    @Test
+    public void testGetMorePropertyNames(){
+        ContiguousList<NestedBean> integers = new ContiguousList<>(NestedBean.class);
+        assertFalse(integers.getPropertyNames().isEmpty());
+        assertEquals("stringBean", integers.getPropertyNames().get(0));
+        assertEquals("name", integers.getPropertyNames().get(1));
+        assertEquals("intBean", integers.getPropertyNames().get(2));
+        assertEquals("value", integers.getPropertyNames().get(3));
     }
 }

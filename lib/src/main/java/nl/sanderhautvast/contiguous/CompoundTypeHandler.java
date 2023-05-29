@@ -26,4 +26,8 @@ class CompoundTypeHandler extends TypeHandler {
     }
 
 
+    @Override
+    public boolean isBuiltin() {
+        return false;
+    }
 }

@@ -23,6 +23,8 @@ public abstract class TypeHandler {
         this.setter = setter;
     }
 
+    public abstract boolean isBuiltin();
+
     void setGetter(MethodHandle getter) {
         this.getter = getter;
     }

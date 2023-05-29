@@ -7,24 +7,30 @@ import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 
-public class ListSerializer<E> extends StdSerializer<ContiguousList<E>> {
+public class ListSerializer<E> extends StdSerializer<ContiguousList> {
 
-    public ListSerializer(Class<ContiguousList<E>> t) {
-        super(t);
+    public ListSerializer() {
+        super(ContiguousList.class);
     }
 
     @Override
     public void serialize(
-            ContiguousList<E> value, JsonGenerator jgen, SerializerProvider provider)
+            ContiguousList clist, JsonGenerator generator, SerializerProvider provider)
             throws IOException, JsonProcessingException {
-//        value.
+        generator.writeStartArray();
 
-//        jgen.writeStartObject();
-//        jgen.writeNumberField("id", value.id);
-//        jgen.writeStringField("itemName", value.itemName);
-//        jgen.writeNumberField("owner", value.owner.id);
-//        jgen.writeEndObject();
+        if (clist.isSimpleElementType()){
+            Iterator<?> iterator = clist.valueIterator();
+            while (iterator.hasNext()){
+                generator.writeString(iterator.next().toString());
+            }
+        } else {
+
+        }
+
+        generator.writeEndArray();
     }
 }
 

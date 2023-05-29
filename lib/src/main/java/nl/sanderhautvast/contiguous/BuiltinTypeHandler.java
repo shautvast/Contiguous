@@ -24,6 +24,11 @@ public abstract class BuiltinTypeHandler<T> extends TypeHandler {
      */
     public abstract void store(T value, ContiguousList<?> list);
 
+    @Override
+    public boolean isBuiltin() {
+        return true;
+    }
+
     void storePropertyValue(Object instance, ContiguousList<?> typedList) {
         T propertyValue = getValue(instance);
         store(propertyValue, typedList);
