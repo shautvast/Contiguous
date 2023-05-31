@@ -1,6 +1,9 @@
 package nl.sanderhautvast.contiguous.demo;
 
+import com.fasterxml.jackson.databind.Module;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import lombok.extern.slf4j.Slf4j;
+import nl.sanderhautvast.contiguous.ListSerializer;
 import nl.sanderhautvast.contiguous.demo.repository.RandomStuffGenerator;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
@@ -40,7 +43,7 @@ public class DemoApplication {
             jdbcTemplate.execute("drop table if exists customers");
             jdbcTemplate.execute("create table customers (name varchar(100), email varchar(100), streetname varchar(100), housenumber integer, city varchar(100), country varchar(100))");
             final RandomStuffGenerator generator = new RandomStuffGenerator();
-            for (int i = 0; i < 100_000; i++) {
+            for (int i = 0; i < 10_000; i++) {
                 jdbcTemplate.update("insert into customers (name, email, streetname, housenumber, city, country) values(?,?,?,?,?,?)",
                         ps -> {
                             String firstName = generator.generateFirstName();
@@ -56,6 +59,14 @@ public class DemoApplication {
             log.info("Database loading finished successfully");
         };
     }
+
+    @Bean
+    public Module jacksonModule() {
+        final SimpleModule module = new SimpleModule("contiguous_module");
+        module.addSerializer(new ListSerializer());
+        return module;
+    }
+
 
     @Bean
     public JdbcTemplate jdbcTemplate() {

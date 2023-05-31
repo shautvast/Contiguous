@@ -56,11 +56,11 @@ public class ContiguousList<E> extends NotImplementedList<E> implements List<E> 
     /*
      * storage for dehydated objects
      */
-    private ByteBuffer data = ByteBuffer.allocate(32);
+    private ByteBuffer data = ByteBuffer.allocate(4096);//TODO create constructor with capacity
 
     private int bufferPosition;
 
-    private int[] elementIndices = new int[10]; // avoids autoboxing. Could also use standard ArrayList though
+    private ArrayList<Integer> elementIndices = new ArrayList<>(); // avoids autoboxing. Could also use standard ArrayList though
     // is there a standard lib IntList??
 
     private int size;
@@ -69,11 +69,7 @@ public class ContiguousList<E> extends NotImplementedList<E> implements List<E> 
 
     public ContiguousList(Class<E> type) {
         inspectType(type);
-        elementIndices[0] = 0; // index of first element
-    }
-
-    public Class<?> getElementType() {
-        return rootHandler.getType();
+        elementIndices.add(0); // index of first element
     }
 
     /*
@@ -136,13 +132,7 @@ public class ContiguousList<E> extends NotImplementedList<E> implements List<E> 
             return false;
         }
         storePropertyData(element, rootHandler);
-        size += 1;
-
-        // keep track of where the objects are stored
-        if (elementIndices.length < size + 1) {
-            this.elementIndices = Arrays.copyOf(this.elementIndices, this.elementIndices.length * 2);
-        }
-        elementIndices[size] = bufferPosition;
+        extend();
         return true;
     }
 
@@ -189,7 +179,7 @@ public class ContiguousList<E> extends NotImplementedList<E> implements List<E> 
         if (index < 0 || index >= size) {
             throw new IndexOutOfBoundsException("index <0 or >" + size);
         }
-        data.position(elementIndices[index]);
+        data.position(elementIndices.get(index));
         try {
             if (rootHandler instanceof BuiltinTypeHandler<?>) {
                 Object read = ValueReader.read(data);
@@ -278,14 +268,14 @@ public class ContiguousList<E> extends NotImplementedList<E> implements List<E> 
         if (index < 0 || index >= size) {
             throw new IndexOutOfBoundsException("index <0 or >" + size);
         }
-        data.position(elementIndices[index]);
+        data.position(elementIndices.get(index));
         if (rootHandler instanceof BuiltinTypeHandler<?>) {
 
             BuiltinTypeHandler<?> handler = (BuiltinTypeHandler<?>) rootHandler;
             return getValue(handler);
         }
         // create a new instance of the list element type
-        StringBuilder s = new StringBuilder();
+        StringBuilder s = new StringBuilder(300);
         s.append("{");
         copyDataIntoStringBuilder(s, (CompoundTypeHandler) rootHandler);
         s.append("}");
@@ -303,7 +293,7 @@ public class ContiguousList<E> extends NotImplementedList<E> implements List<E> 
     }
 
     private static String quote(String out) {
-        StringBuilder s = new StringBuilder();
+        StringBuilder s = new StringBuilder(out.length() + 2);
         out = s.append("\"").append(out).append("\"").toString();
         return out;
     }
@@ -315,9 +305,9 @@ public class ContiguousList<E> extends NotImplementedList<E> implements List<E> 
         compoundType.getProperties().forEach(property -> {
             if (property instanceof BuiltinTypeHandler) {
                 BuiltinTypeHandler<?> typeHandler = (BuiltinTypeHandler<?>) property;
-                String name = typeHandler.getName();
-                String value = getValue(typeHandler);
-                s.append(quote(name)).append(": ").append(value);
+                s.append(quote(typeHandler.getName()))
+                        .append(": ")
+                        .append(getValue(typeHandler));
             } else {
                 CompoundTypeHandler p = (CompoundTypeHandler) property;
                 s.append(p.getName()).append(":{");
@@ -608,14 +598,12 @@ public class ContiguousList<E> extends NotImplementedList<E> implements List<E> 
     // used by SetterIterator
     void extend() {
         size += 1;
+        // keep track of index of element in data
+        elementIndices.add(bufferPosition);
     }
 
     byte[] getData() {
         return Arrays.copyOfRange(data.array(), 0, bufferPosition);
-    }
-
-    int[] getElementIndices() {
-        return Arrays.copyOfRange(elementIndices, 0, size + 1);
     }
 
     private void ensureFree(int length) {

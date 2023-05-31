@@ -22,14 +22,17 @@ public class DemoRestApi {
     }
 
     @GetMapping(value = "/api/customers", produces = "application/json")
-    public List<Customer> getCustomers()  {
-        try {
-            ContiguousList<Customer> customers = customerRepository.getAllCustomers();
-            log.info("customers {}", customers.size());
-            return customers;
-        } catch (Exception e) {
-            log.error("Error", e);
-            throw new RuntimeException(e);
-        }
+    public ContiguousList<Customer> getCustomers() {
+        return customerRepository.getAllCustomers();
+    }
+
+    @GetMapping(value = "/api/customers/traditional", produces = "application/json")
+    public List<Customer> getCustomersTraditional() {
+        return customerRepository.getAllCustomersTraditional();
+    }
+
+    @GetMapping(value = "/api/customers/hybrid", produces = "application/json")
+    public List<Customer> getCustomersHybrid() {
+        return customerRepository.getAllCustomersHybrid();
     }
 }
