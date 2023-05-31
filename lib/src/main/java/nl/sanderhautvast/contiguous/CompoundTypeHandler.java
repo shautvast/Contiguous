@@ -6,7 +6,9 @@ import java.util.*;
 class CompoundTypeHandler extends TypeHandler {
     private final Map<String, TypeHandler> properties = new LinkedHashMap<>();
 
-
+    CompoundTypeHandler(Class<?> type) {
+        super(type, null,null, null);
+    }
 
     CompoundTypeHandler(Class<?> type, String propertyName) {
         super(type, propertyName, null,null);
@@ -23,11 +25,5 @@ class CompoundTypeHandler extends TypeHandler {
 
     void addChild(Field property, CompoundTypeHandler childCompoundType) {
         this.properties.put(property.getName(), childCompoundType);
-    }
-
-
-    @Override
-    public boolean isBuiltin() {
-        return false;
     }
 }

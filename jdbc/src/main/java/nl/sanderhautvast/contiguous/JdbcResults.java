@@ -57,7 +57,7 @@ public class JdbcResults {
                 }
                 next.set(fieldValue);
             }
-            setterIterator.nextRecord();
+            setterIterator.finishObject();
         }
     }
 
@@ -69,7 +69,6 @@ public class JdbcResults {
      * @throws SQLException when db throws error..
      */
     public static <E> ContiguousList<E> toList(ResultSet result, Class<E> elementType) throws SQLException {
-        ContiguousList<E> list = new ContiguousList<>(elementType);
         return toList(result, elementType, Function.identity());
     }
 

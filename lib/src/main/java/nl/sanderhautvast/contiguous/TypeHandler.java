@@ -14,6 +14,10 @@ public abstract class TypeHandler {
     protected MethodHandle getter; // both can be null, if it's for a known ('primitive') type
     protected MethodHandle setter;
     private final Class<?> type;
+
+    /**
+     * full name, prepended by all parent property names
+     */
     private final String name;
 
     public TypeHandler(Class<?> type, String name, MethodHandle getter, MethodHandle setter) {
@@ -22,8 +26,6 @@ public abstract class TypeHandler {
         this.getter = getter;
         this.setter = setter;
     }
-
-    public abstract boolean isBuiltin();
 
     void setGetter(MethodHandle getter) {
         this.getter = getter;

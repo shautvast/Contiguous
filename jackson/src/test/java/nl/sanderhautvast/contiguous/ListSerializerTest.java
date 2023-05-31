@@ -3,7 +3,6 @@ package nl.sanderhautvast.contiguous;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -45,9 +44,9 @@ class ListSerializerTest {
 
 
         String json = mapper.writeValueAsString(strings);
-        assertEquals("[{\"name\":\"Vogon constructor fleet\"}," +
-                        "{\"name\":\"Restaurant at the end of the Galaxy\"}," +
-                        "{\"name\":\"Publishing houses of Ursa Minor\"}]",
+        assertEquals("[{\"name\": \"Vogon constructor fleet\"}," +
+                        "{\"name\": \"Restaurant at the end of the Galaxy\"}," +
+                        "{\"name\": \"Publishing houses of Ursa Minor\"}]",
                 json);
     }
 }
