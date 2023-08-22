@@ -4,7 +4,7 @@
 * needs jdk 9 (VarHandles)
 * minimal reflection (once per creation of the list)
 
-* The only class (for now): [ContiguousList](https://github.com/shautvast/Contiguous/blob/main/src/main/java/nl/sanderhautvast/contiguous/ContiguousList.java)
+* The only class (for now): [ContiguousList](https://github.com/shautvast/Contiguous/blob/main/lib/src/main/java/com/github/shautvast/contiguous/ContiguousList.java)
 
 * Still in a very early stage
   * the code is working
