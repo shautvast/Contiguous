@@ -9,7 +9,3 @@
 * Still in a very early stage
   * the code is working
   * but it remains to be seen if this is a good idea
-
-
--javaagent:/Users/Shautvast/dev/perfix/target/perfix-agent-0.1-SNAPSHOT.jar
--Dperfix.includes=nl.sanderhautvast.contiguous
