@@ -3,7 +3,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>nl.sanderhautvast</groupId>
+    <groupId>com.github.shautvast</groupId>
     <artifactId>contiguous-pom</artifactId>
     <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
@@ -13,6 +13,7 @@
         <module>demo</module>
         <module>jdbc</module>
         <module>jackson</module>
+        <module>benchmark</module>
     </modules>
     <name>contiguous</name>
     <description>contiguous storage for java</description>
