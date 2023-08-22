@@ -19,8 +19,10 @@
 | classic    | avgt |   5 | 13312478.471 | ± 259931.663 | ns/op |
 | contiguous | avgt |   5 | 13063782.511 | ± 451500.662 | ns/op |
 
---> pretty much on par despite all the overhead for inspecting the list elements
---> will try to squeeze out more performance
+* pretty much on par despite all the overhead for inspecting the list elements
+* will try to squeeze out more performance
+
+*Benchmark environment details*
 
 ```
 [ec2-user@ip-172-31-22-215 Contiguous]$ lscpu
