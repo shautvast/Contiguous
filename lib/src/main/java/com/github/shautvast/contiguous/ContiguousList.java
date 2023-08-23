@@ -4,7 +4,6 @@ import com.github.shautvast.reflective.MetaClass;
 import com.github.shautvast.reflective.MetaMethod;
 import com.github.shautvast.reflective.Reflective;
 
-import java.lang.invoke.MethodHandles;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -128,14 +127,6 @@ public class ContiguousList<E> extends NotImplementedList<E> implements List<E> 
                         throw new RuntimeException(e);
                     }
                 });
-    }
-
-    private static MethodHandles.Lookup getLookup(Class<?> type) {
-        try {
-            return MethodHandles.privateLookupIn(type, MethodHandles.lookup());
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     @Override
@@ -306,8 +297,7 @@ public class ContiguousList<E> extends NotImplementedList<E> implements List<E> 
 
     private static String quote(String out) {
         StringBuilder s = new StringBuilder(out.length() + 2);
-        out = s.append("\"").append(out).append("\"").toString();
-        return out;
+        return s.append("\"").append(out).append("\"").toString();
     }
 
     /*
