@@ -10,16 +10,16 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class ListSerializerTest {
 
-
     private ObjectMapper mapper;
 
     @BeforeEach
-    public void setup(){
+    public void setup() {
         mapper = new ObjectMapper();
         final SimpleModule module = new SimpleModule("mySerializers");
         module.addSerializer(new ListSerializer());
         mapper.registerModule(module);
     }
+
     @Test
     public void testStringList() throws JsonProcessingException {
         ContiguousList<String> strings = new ContiguousList<>(String.class);
@@ -40,7 +40,6 @@ class ListSerializerTest {
         strings.add(new AdamsObject("Vogon constructor fleet"));
         strings.add(new AdamsObject("Restaurant at the end of the Galaxy"));
         strings.add(new AdamsObject("Publishing houses of Ursa Minor"));
-
 
 
         String json = mapper.writeValueAsString(strings);

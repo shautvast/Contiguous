@@ -1,12 +1,14 @@
 package com.github.shautvast.contiguous;
 
+import com.github.shautvast.reflective.MetaMethod;
+
 import java.lang.invoke.MethodHandle;
 
 /**
  * Stores a double value.
  */
 class DoubleHandler extends BuiltinTypeHandler<Double> {
-    public DoubleHandler(String propertyName, MethodHandle getter, MethodHandle setter) {
+    public DoubleHandler(String propertyName, MetaMethod getter, MetaMethod setter) {
         super(Double.class, propertyName, getter, setter);
     }
 

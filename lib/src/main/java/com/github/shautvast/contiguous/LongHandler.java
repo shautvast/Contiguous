@@ -1,9 +1,11 @@
 package com.github.shautvast.contiguous;
 
+import com.github.shautvast.reflective.MetaMethod;
+
 import java.lang.invoke.MethodHandle;
 
 class LongHandler extends BuiltinTypeHandler<Long> {
-    public LongHandler(String propertyName, MethodHandle getter, MethodHandle setter) {
+    public LongHandler(String propertyName, MetaMethod getter, MetaMethod setter) {
         super(Long.class, propertyName, getter, setter);
     }
 

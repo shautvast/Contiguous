@@ -1,5 +1,10 @@
 package com.github.shautvast.contiguous;
 
+import com.github.shautvast.reflective.InvokerFactory;
+import com.github.shautvast.reflective.MetaClass;
+import com.github.shautvast.reflective.MetaMethod;
+import com.github.shautvast.reflective.Reflective;
+
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.InvocationTargetException;
@@ -73,7 +78,7 @@ public class ContiguousList<E> extends NotImplementedList<E> implements List<E> 
         elementIndices.add(0); // index of first element
     }
 
-    public void close(){
+    public void close() {
         BufferCache.release(this.data);
     }
 
@@ -100,13 +105,15 @@ public class ContiguousList<E> extends NotImplementedList<E> implements List<E> 
      * using reflection find all properties in the element, recursing down when the property is compound
      */
     private void addPropertyHandlersForCompoundType(Class<?> type, CompoundTypeHandler parentCompoundType) {
-        final MethodHandles.Lookup lookup = getLookup(type);
+        MetaClass metaType = Reflective.getMetaClass(type);
         Arrays.stream(type.getDeclaredFields())
                 .forEach(field -> {
                     try {
                         Class<?> fieldType = field.getType();
-                        MethodHandle getter = lookup.findGetter(type, field.getName(), fieldType);
-                        MethodHandle setter = lookup.findSetter(type, field.getName(), fieldType);
+
+                        String capitalized = capitalize(field.getName());
+                        MetaMethod getter = metaType.getMethod("get" + capitalized).get();
+                        MetaMethod setter = metaType.getMethod("set" + capitalized).get();
 
                         Optional<TypeHandler> typeHandler = PropertyHandlerFactory.forType(fieldType, field.getName(), getter, setter);
                         if (typeHandler.isPresent()) {
@@ -161,7 +168,7 @@ public class ContiguousList<E> extends NotImplementedList<E> implements List<E> 
                 } else {
                     CompoundTypeHandler child = ((CompoundTypeHandler) property);
                     try {
-                        Object result = child.getGetter().invoke(element);
+                        Object result = child.getGetter().invoke(element).unwrap();
                         storePropertyData(result, child);
                     } catch (Throwable e) {
                         throw new RuntimeException(e);
@@ -213,7 +220,9 @@ public class ContiguousList<E> extends NotImplementedList<E> implements List<E> 
         compoundType.getProperties().forEach(property -> {
             if (property instanceof BuiltinTypeHandler) {
                 BuiltinTypeHandler<?> type = ((BuiltinTypeHandler<?>) property);
-                type.setValue(element, ValueReader.read(data));
+                Object readValue = ValueReader.read(data);
+                System.out.println(readValue);
+                type.setValue(element, readValue);
             } else {
                 try {
                     CompoundTypeHandler p = (CompoundTypeHandler) property;
@@ -221,7 +230,7 @@ public class ContiguousList<E> extends NotImplementedList<E> implements List<E> 
                     Object newInstance = p.getType().getDeclaredConstructor().newInstance();
 
                     // set it on the parent
-                    p.getSetter().invokeWithArguments(element, newInstance);
+                    p.getSetter().invoke(element, newInstance);
 
                     // recurse down
                     copyDataIntoNewObject(newInstance, p);
@@ -615,8 +624,9 @@ public class ContiguousList<E> extends NotImplementedList<E> implements List<E> 
     private void ensureFree(int length) {
         while (bufferPosition + length > data.capacity()) {
             ByteBuffer bytes = this.data;
+            bytes.position(0);
             BufferCache.release(this.data);
-            this.data = BufferCache.get((int)(bytes.capacity() * 1.5));
+            this.data = BufferCache.get((int) (bytes.capacity() * 1.5));
             this.data.put(bytes);
         }
     }
@@ -745,4 +755,9 @@ public class ContiguousList<E> extends NotImplementedList<E> implements List<E> 
             } else return Varint.write(6);
         }
     }
+
+    private String capitalize(String text) {
+        return text.substring(0, 1).toUpperCase() + text.substring(1);
+    }
+
 }

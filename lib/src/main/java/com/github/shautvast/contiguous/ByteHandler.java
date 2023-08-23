@@ -1,5 +1,7 @@
 package com.github.shautvast.contiguous;
 
+import com.github.shautvast.reflective.MetaMethod;
+
 import java.lang.invoke.MethodHandle;
 
 /**
@@ -7,7 +9,7 @@ import java.lang.invoke.MethodHandle;
  */
 class ByteHandler extends BuiltinTypeHandler<Byte> {
 
-    public ByteHandler(String propertyName, MethodHandle getter, MethodHandle setter) {
+    public ByteHandler(String propertyName, MetaMethod getter, MetaMethod setter) {
         super(Byte.class, propertyName, getter, setter);
     }
 

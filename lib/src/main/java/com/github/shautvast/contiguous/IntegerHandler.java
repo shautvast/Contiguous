@@ -1,9 +1,11 @@
 package com.github.shautvast.contiguous;
 
+import com.github.shautvast.reflective.MetaMethod;
+
 import java.lang.invoke.MethodHandle;
 
 class IntegerHandler extends BuiltinTypeHandler<Integer> {
-    public IntegerHandler(String propertyName, MethodHandle getter, MethodHandle setter) {
+    public IntegerHandler(String propertyName, MetaMethod getter, MetaMethod setter) {
         super(Integer.class, propertyName, getter, setter);
     }
 

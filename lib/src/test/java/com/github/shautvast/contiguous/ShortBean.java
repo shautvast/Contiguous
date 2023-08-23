@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-class ShortBean {
+public class ShortBean {
     private short value;
 
 }

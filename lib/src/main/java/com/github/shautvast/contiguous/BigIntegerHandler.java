@@ -1,10 +1,12 @@
 package com.github.shautvast.contiguous;
 
+import com.github.shautvast.reflective.MetaMethod;
+
 import java.lang.invoke.MethodHandle;
 import java.math.BigInteger;
 
 class BigIntegerHandler extends BuiltinTypeHandler<BigInteger> {
-    public BigIntegerHandler(String propertyName, MethodHandle getter, MethodHandle setter) {
+    public BigIntegerHandler(String propertyName, MetaMethod getter, MetaMethod setter) {
         super(BigInteger.class, propertyName, getter, setter);
     }
 

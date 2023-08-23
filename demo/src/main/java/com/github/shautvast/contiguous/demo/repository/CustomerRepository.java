@@ -29,7 +29,7 @@ public class CustomerRepository {
     }
 
     public List<Customer> getAllCustomersTraditional() {
-        return jdbcTemplate.query("select * from customers", (rs, rowNum) -> new Customer(
+        return jdbcTemplate.query("select * from customers limit 10000", (rs, rowNum) -> new Customer(
                 rs.getString("name"),rs.getString("email"),
                 rs.getString("streetname"), rs.getInt("housenumber"),
                 rs.getString("city"), rs.getString("country")

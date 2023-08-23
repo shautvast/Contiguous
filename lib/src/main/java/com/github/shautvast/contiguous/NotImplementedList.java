@@ -4,7 +4,7 @@ import java.util.*;
 import java.util.function.UnaryOperator;
 
 /**
- * Base class that is a list of all the methods live that will likely not be implemented (pun intended)
+ * Base class with all the methods that will not be implemented
  * Only purpose: reduce linecount in the subclass.
  *
  * @param <E>

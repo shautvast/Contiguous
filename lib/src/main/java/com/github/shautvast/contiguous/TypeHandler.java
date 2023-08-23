@@ -1,5 +1,7 @@
 package com.github.shautvast.contiguous;
 
+import com.github.shautvast.reflective.MetaMethod;
+
 import java.lang.invoke.MethodHandle;
 
 /**
@@ -11,8 +13,8 @@ import java.lang.invoke.MethodHandle;
  */
 public abstract class TypeHandler {
 
-    protected MethodHandle getter; // both can be null, if it's for a known ('primitive') type
-    protected MethodHandle setter;
+    protected MetaMethod getter; // both can be null, if it's for a known ('primitive') type
+    protected MetaMethod setter;
     private final Class<?> type;
 
     /**
@@ -20,26 +22,26 @@ public abstract class TypeHandler {
      */
     private final String name;
 
-    public TypeHandler(Class<?> type, String name, MethodHandle getter, MethodHandle setter) {
+    public TypeHandler(Class<?> type, String name, MetaMethod getter, MetaMethod setter) {
         this.type = type;
         this.name = name;
         this.getter = getter;
         this.setter = setter;
     }
 
-    void setGetter(MethodHandle getter) {
+    void setGetter(MetaMethod getter) {
         this.getter = getter;
     }
 
-    public MethodHandle getGetter() {
+    public MetaMethod getGetter() {
         return getter;
     }
 
-    public MethodHandle getSetter() {
+    public MetaMethod getSetter() {
         return setter;
     }
 
-    void setSetter(MethodHandle setter) {
+    void setSetter(MetaMethod setter) {
         this.setter = setter;
     }
 

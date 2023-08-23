@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-class DoubleBean {
+public class DoubleBean {
     private Double value;
 
 

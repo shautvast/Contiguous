@@ -1,5 +1,7 @@
 package com.github.shautvast.contiguous;
 
+import com.github.shautvast.reflective.MetaMethod;
+
 import java.lang.invoke.MethodHandle;
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
@@ -38,10 +40,10 @@ final class PropertyHandlerFactory {
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> Optional<TypeHandler> forType(Class<T> type, String name, MethodHandle getter, MethodHandle setter) {
+    public static <T> Optional<TypeHandler> forType(Class<T> type, String name, MetaMethod getter, MetaMethod setter) {
         return Optional.ofNullable(BUILTIN.get(type)).map(appenderClass -> {
             try {
-                return (BuiltinTypeHandler<T>) appenderClass.getDeclaredConstructor(String.class, MethodHandle.class, MethodHandle.class)
+                return (BuiltinTypeHandler<T>) appenderClass.getDeclaredConstructor(String.class, MetaMethod.class, MetaMethod.class)
                         .newInstance(name, getter, setter);
             } catch (NoSuchMethodException | InstantiationException | IllegalAccessException |
                      InvocationTargetException e) {

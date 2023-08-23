@@ -1,6 +1,6 @@
 package com.github.shautvast.contiguous;
 
-import java.lang.invoke.MethodHandle;
+import com.github.shautvast.reflective.MetaMethod;
 
 /**
  * Base class for handlers. Its responsibility is to read and write a property from the incoming object to the internal storage.
@@ -12,7 +12,7 @@ import java.lang.invoke.MethodHandle;
  * ie. when a bean is added or retrieved from the list
  */
 abstract class BuiltinTypeHandler<T> extends TypeHandler {
-    public BuiltinTypeHandler(Class<?> type, String name, MethodHandle getter, MethodHandle setter) {
+    public BuiltinTypeHandler(Class<?> type, String name, MetaMethod getter, MetaMethod setter) {
         super(type, name, getter, setter);
     }
 
@@ -38,9 +38,9 @@ abstract class BuiltinTypeHandler<T> extends TypeHandler {
         if (getter == null) {
             return (T) propertyValue;
         }
-
+        System.out.println(propertyValue.getClass());
         try {
-            return (T) getter.invoke(propertyValue);
+            return (T) getter.invoke(propertyValue).unwrap();
         } catch (Throwable e) {
             throw new IllegalStateException(e);
         }
@@ -57,8 +57,11 @@ abstract class BuiltinTypeHandler<T> extends TypeHandler {
      * @param value    the value that has been read from ContiguousList storage
      */
     public void setValue(Object instance, Object value) {
+        System.out.println(instance.getClass());
+        System.out.println(cast(value));
+        System.out.println(setter.getMetaClass().getJavaClass().getName());
         try {
-            setter.invokeWithArguments(instance, cast(value));
+            setter.invoke(instance, cast(value)).unwrap();
         } catch (Throwable e) {
             throw new IllegalStateException(e);
         }

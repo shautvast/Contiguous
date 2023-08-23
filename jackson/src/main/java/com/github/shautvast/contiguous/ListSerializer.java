@@ -22,7 +22,8 @@ public class ListSerializer extends StdSerializer<ContiguousList<?>> {
 
         Iterator<String> jsons = clist.jsonIterator();
         while (jsons.hasNext()) {
-            generator.writeRawValue(jsons.next());
+            String next = jsons.next();
+            generator.writeRawValue(next);
         }
 
         generator.writeEndArray();

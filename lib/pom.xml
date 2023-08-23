@@ -12,7 +12,7 @@
 
     <artifactId>contiguous</artifactId>
 
-    <description>Datastructures with contiguous storage. Core library with no external dependencies</description>
+    <description>Datastructures with contiguous storage. Core library</description>
     <packaging>jar</packaging>
 
     <properties>
@@ -21,6 +21,11 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
     <dependencies>
+        <dependency>
+            <groupId>com.github.shautvast</groupId>
+            <artifactId>reflective</artifactId>
+            <version>1.2.1</version>
+        </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
@@ -40,4 +45,12 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <distributionManagement>
+        <repository>
+            <id>github</id>
+            <name>GitHub OWNER Apache Maven Packages</name>
+            <url>https://maven.pkg.github.com/shautvast/Contiguous</url>
+        </repository>
+    </distributionManagement>
 </project>

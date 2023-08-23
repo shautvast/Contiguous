@@ -1,9 +1,11 @@
 package com.github.shautvast.contiguous;
 
+import com.github.shautvast.reflective.MetaMethod;
+
 import java.lang.invoke.MethodHandle;
 
 class FloatHandler extends BuiltinTypeHandler<Float> {
-    public FloatHandler(String propertyName, MethodHandle getter, MethodHandle setter) {
+    public FloatHandler(String propertyName, MetaMethod getter, MetaMethod setter) {
         super(Float.class, propertyName, getter, setter);
     }
 
