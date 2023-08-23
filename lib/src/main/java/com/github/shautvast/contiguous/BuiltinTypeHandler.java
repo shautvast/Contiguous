@@ -40,7 +40,6 @@ abstract class BuiltinTypeHandler<T> extends TypeHandler {
         if (getter == null) {
             return (T) propertyValue;
         }
-        System.out.println(propertyValue.getClass());
         try {
             return (T) getter.invoke(propertyValue).unwrap();
         } catch (Throwable e) {
@@ -59,9 +58,6 @@ abstract class BuiltinTypeHandler<T> extends TypeHandler {
      * @param value    the value that has been read from ContiguousList storage
      */
     public void setValue(Object instance, Object value) {
-        System.out.println(instance.getClass());
-        System.out.println(cast(value));
-        System.out.println(setter.getMetaClass().getJavaClass().getName());
         try {
             setter.invoke(instance, cast(value)).unwrap();
         } catch (Throwable e) {

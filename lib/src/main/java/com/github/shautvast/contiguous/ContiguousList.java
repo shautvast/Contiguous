@@ -210,7 +210,6 @@ public class ContiguousList<E> extends NotImplementedList<E> implements List<E> 
             if (property instanceof BuiltinTypeHandler) {
                 BuiltinTypeHandler<?> type = ((BuiltinTypeHandler<?>) property);
                 Object readValue = ValueReader.read(data);
-                System.out.println(readValue);
                 type.setValue(element, readValue);
             } else {
                 try {
