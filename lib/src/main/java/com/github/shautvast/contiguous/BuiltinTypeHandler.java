@@ -29,10 +29,12 @@ abstract class BuiltinTypeHandler<T> extends TypeHandler {
         store(propertyValue, typedList);
     }
 
+    @SuppressWarnings("unchecked")
     void storeValue(Object value, ContiguousList<?> contiguousList) {
         store((T) value, contiguousList);
     }
 
+    @SuppressWarnings("unchecked")
     private T getValue(Object propertyValue) {
         // I don't trust this
         if (getter == null) {
