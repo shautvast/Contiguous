@@ -2,8 +2,6 @@ package com.github.shautvast.contiguous;
 
 import com.github.shautvast.reflective.MetaMethod;
 
-import java.lang.invoke.MethodHandle;
-
 /**
  * Stores a double value.
  */

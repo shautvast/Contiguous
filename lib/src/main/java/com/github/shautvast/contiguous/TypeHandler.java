@@ -2,8 +2,6 @@ package com.github.shautvast.contiguous;
 
 import com.github.shautvast.reflective.MetaMethod;
 
-import java.lang.invoke.MethodHandle;
-
 /**
  * Abstract basetype over handlers for 'primitives' (ie. long, but also Long,
  * String..=> built-in types) and compound types (your own).

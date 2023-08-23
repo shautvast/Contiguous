@@ -2,7 +2,6 @@ package com.github.shautvast.contiguous;
 
 import com.github.shautvast.reflective.MetaMethod;
 
-import java.lang.invoke.MethodHandle;
 import java.math.BigDecimal;
 
 class BigDecimalHandler extends BuiltinTypeHandler<BigDecimal> {

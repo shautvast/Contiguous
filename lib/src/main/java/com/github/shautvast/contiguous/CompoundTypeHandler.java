@@ -1,7 +1,9 @@
 package com.github.shautvast.contiguous;
 
 import java.lang.reflect.Field;
-import java.util.*;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 class CompoundTypeHandler extends TypeHandler {
     private final Map<String, TypeHandler> properties = new LinkedHashMap<>();

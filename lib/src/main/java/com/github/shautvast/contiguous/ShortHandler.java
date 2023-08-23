@@ -2,8 +2,6 @@ package com.github.shautvast.contiguous;
 
 import com.github.shautvast.reflective.MetaMethod;
 
-import java.lang.invoke.MethodHandle;
-
 class ShortHandler extends BuiltinTypeHandler<Short> {
     public ShortHandler(String propertyName, MetaMethod getter, MetaMethod setter) {
         super(Short.class, propertyName, getter, setter);

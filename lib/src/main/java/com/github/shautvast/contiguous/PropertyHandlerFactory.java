@@ -2,11 +2,12 @@ package com.github.shautvast.contiguous;
 
 import com.github.shautvast.reflective.MetaMethod;
 
-import java.lang.invoke.MethodHandle;
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 /*
  * Maps the propertyvalue type to a PropertyHandler

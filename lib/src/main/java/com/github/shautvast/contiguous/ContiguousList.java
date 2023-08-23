@@ -1,11 +1,9 @@
 package com.github.shautvast.contiguous;
 
-import com.github.shautvast.reflective.InvokerFactory;
 import com.github.shautvast.reflective.MetaClass;
 import com.github.shautvast.reflective.MetaMethod;
 import com.github.shautvast.reflective.Reflective;
 
-import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.ByteBuffer;
